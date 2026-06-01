@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "SplitHub",
+    "slug": "splithub",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "splithub",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "ru.splithub.mobile",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "ru.splithub.mobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#F59E0B",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F8FAFC",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 160
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1d57a8c8-642d-4441-8149-b62393ef9a09"
+      }
+    },
+    "owner": "alextsarev"
+  }
+}
