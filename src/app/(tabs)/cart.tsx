@@ -12,13 +12,12 @@ import { colors, formatPrice, spacing } from '../../lib/theme';
 export default function CartScreen() {
   const insets = useSafeAreaInsets();
   const { snapshot } = useCatalog();
-  const { items, total, addProduct, setQty, checkout, checkoutError, checkingOut } = useCart();
+  const { items, itemsCount, total, addProduct, setQty, checkout, checkoutError, checkingOut } = useCart();
   const [comment, setComment] = useState('');
   const installerKit = useMemo(
     () => upsellProducts(items, snapshot?.products ?? []),
     [items, snapshot],
   );
-  const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
 
   async function submit() {
     const result = await checkout(comment);
@@ -80,7 +79,7 @@ export default function CartScreen() {
           <View style={styles.totalRow}>
             <View>
               <Text style={styles.totalLabel}>Итого по заявке</Text>
-              <Text style={styles.totalCount}>{itemCount} шт.</Text>
+              <Text style={styles.totalCount}>{itemsCount} шт.</Text>
             </View>
             <Text style={styles.total}>{formatPrice(total)}</Text>
           </View>

@@ -7,11 +7,12 @@ import type { Product } from './types';
 const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
 
 type ProductCardProps = {
+  cartQty?: number;
   product: Product;
   onAdd: (product: Product) => void;
 };
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
+export function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
   return (
     <View style={styles.card}>
       <Link href={{ pathname: '/product/[id]', params: { id: product.id } }} asChild>
@@ -27,7 +28,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         </Pressable>
       </Link>
       <Pressable onPress={() => onAdd(product)} style={styles.addButton}>
-        <Text style={styles.addText}>Заказать</Text>
+        <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'Заказать'}</Text>
       </Pressable>
     </View>
   );

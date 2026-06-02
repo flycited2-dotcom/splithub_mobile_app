@@ -36,9 +36,10 @@ Rules:
 
 ## P1
 
-- [ ] **Cart/product added indication**
+- [ ] **Cart/product added indication** `(fixed in branch, needs APK verification)`
   - Symptom: after tapping order/add there is no persistent indication on the product card or order/cart tab.
   - Expected: visible cart counter/badge and product/cart state feedback.
+  - Fix: cart tab badge now shows total item count; catalog and product detail buttons show "В заявке · N" for products already added.
 
 - [ ] **Order submit indication**
   - Symptom: after submitting an order, there should be clearer confirmation and visible order count/status.

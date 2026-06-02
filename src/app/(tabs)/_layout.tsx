@@ -1,9 +1,12 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 
+import { useCart } from '../../features/cart/cart-context';
 import { colors } from '../../lib/theme';
 
 export default function TabLayout() {
+  const { itemsCount } = useCart();
+
   return (
     <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent }}>
       <Tabs.Screen
@@ -16,6 +19,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cart"
         options={{
+          tabBarBadge: itemsCount > 0 ? itemsCount : undefined,
           title: 'Корзина',
           tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="shopping-cart" size={size} />,
         }}

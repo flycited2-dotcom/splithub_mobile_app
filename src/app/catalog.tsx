@@ -27,7 +27,7 @@ export default function CatalogScreen() {
   const params = useLocalSearchParams<{ filter?: string; mode?: string }>();
   const insets = useSafeAreaInsets();
   const { snapshot, loading, offline, error, refresh } = useCatalog();
-  const { addProduct } = useCart();
+  const { addProduct, quantityByProductId } = useCart();
   const [search, setSearch] = useState('');
   const filter = typeof params.filter === 'string' ? params.filter : '';
   const flatMode = params.mode === 'flat';
@@ -45,7 +45,14 @@ export default function CatalogScreen() {
   }
 
   function renderProduct(product: Product) {
-    return <ProductCard key={product.id} onAdd={add} product={product} />;
+    return (
+      <ProductCard
+        cartQty={quantityByProductId[product.id] ?? 0}
+        key={product.id}
+        onAdd={add}
+        product={product}
+      />
+    );
   }
 
   function renderCatalogRow(row: CatalogRow) {

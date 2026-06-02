@@ -17,7 +17,7 @@ export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { snapshot } = useCatalog();
-  const { addProduct } = useCart();
+  const { addProduct, quantityByProductId } = useCart();
   const [qty, setQty] = useState(1);
   const product = snapshot?.products.find((item) => item.id === id);
 
@@ -30,6 +30,7 @@ export default function ProductDetailsScreen() {
   }
 
   const selectedProduct = product;
+  const cartQty = quantityByProductId[selectedProduct.id] ?? 0;
   const urls = shareUrls(selectedProduct);
   const specs = [
     product.btu ? `Мощность: ${product.btu} BTU` : '',
@@ -62,7 +63,7 @@ export default function ProductDetailsScreen() {
         <View style={styles.priceRow}>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
           <Pressable onPress={addToCart} style={styles.addButton}>
-            <Text style={styles.addText}>В заявку</Text>
+            <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'В заявку'}</Text>
           </Pressable>
         </View>
 

@@ -12,7 +12,12 @@ import { api } from '../../lib/api';
 import { cartStorage } from '../../lib/storage';
 import type { Product } from '../catalog/types';
 import { checkoutPayload } from './checkout-payload';
-import { cartReducer, type CartItem } from './cart-reducer';
+import {
+  cartItemsCount,
+  cartQuantityByProductId,
+  cartReducer,
+  type CartItem,
+} from './cart-reducer';
 
 type CheckoutError = {
   code: string;
@@ -21,6 +26,8 @@ type CheckoutError = {
 
 type CartContextValue = {
   items: CartItem[];
+  itemsCount: number;
+  quantityByProductId: Record<string, number>;
   total: number;
   checkoutError: CheckoutError | null;
   checkingOut: boolean;
@@ -63,6 +70,8 @@ export function CartProvider({ children }: PropsWithChildren) {
   const value = useMemo<CartContextValue>(
     () => ({
       items,
+      itemsCount: cartItemsCount(items),
+      quantityByProductId: cartQuantityByProductId(items),
       total: items.reduce((sum, item) => sum + item.price * item.qty, 0),
       checkoutError,
       checkingOut,
