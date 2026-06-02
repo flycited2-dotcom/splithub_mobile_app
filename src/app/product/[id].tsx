@@ -4,6 +4,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StackBottomTabs } from '../../components/stack-bottom-tabs';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productShareData, shareUrls } from '../../features/catalog/share-product';
@@ -114,6 +115,7 @@ export default function ProductDetailsScreen() {
           </View>
         </View>
       </ScrollView>
+      <StackBottomTabs active="home" />
     </>
   );
 }

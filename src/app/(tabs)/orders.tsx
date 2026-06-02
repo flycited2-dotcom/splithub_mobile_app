@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { listOrders } from '../../features/orders/orders-repository';
@@ -20,9 +20,14 @@ const statusLabels: Record<OrderStatus, string> = {
 
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ created?: string }>();
   const { user } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
+  const createdOrderId = typeof params.created === 'string' ? Number(params.created) : 0;
+  const createdOrderNumber = Number.isFinite(createdOrderId) && createdOrderId > 0
+    ? `SH-${String(createdOrderId).padStart(5, '0')}`
+    : '';
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -52,6 +57,12 @@ export default function OrdersScreen() {
   return (
     <ScrollView contentContainerStyle={[styles.screen, tabScreenPadding(insets)]}>
       <Text style={styles.title}>Мои заказы</Text>
+      {createdOrderNumber ? (
+        <View style={styles.sentBanner}>
+          <Text style={styles.sentTitle}>Заявка {createdOrderNumber} отправлена</Text>
+          <Text style={styles.sentText}>Менеджер уже получил заявку. Статус появится здесь после обработки.</Text>
+        </View>
+      ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {!orders.length && !error ? <Text style={styles.muted}>Заказов пока нет</Text> : null}
       {orders.map((order) => (
@@ -94,6 +105,22 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#B91C1C',
+  },
+  sentBanner: {
+    backgroundColor: '#ECFDF3',
+    borderColor: '#BBF7D0',
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: spacing.xs,
+    padding: spacing.md,
+  },
+  sentTitle: {
+    color: '#166534',
+    fontWeight: '900',
+  },
+  sentText: {
+    color: '#166534',
+    fontSize: 12,
   },
   card: {
     backgroundColor: colors.card,

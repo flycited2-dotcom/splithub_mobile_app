@@ -1,0 +1,121 @@
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+
+import CartScreen from '../src/app/(tabs)/cart';
+import OrdersScreen from '../src/app/(tabs)/orders';
+import { useCart } from '../src/features/cart/cart-context';
+import { useCatalog } from '../src/features/catalog/catalog-context';
+import { listOrders } from '../src/features/orders/orders-repository';
+import { useSession } from '../src/features/session/session-context';
+
+const mockCheckout = jest.fn();
+
+jest.mock('expo-router', () => ({
+  Link: ({ children }: { children: ReactNode }) => {
+    const { Text } = require('react-native');
+    return <Text>{children}</Text>;
+  },
+  router: {
+    push: jest.fn(),
+  },
+  useLocalSearchParams: jest.fn(),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
+}));
+
+jest.mock('../src/features/cart/cart-context', () => ({
+  useCart: jest.fn(),
+}));
+
+jest.mock('../src/features/catalog/catalog-context', () => ({
+  useCatalog: jest.fn(),
+}));
+
+jest.mock('../src/features/orders/orders-repository', () => ({
+  listOrders: jest.fn(),
+}));
+
+jest.mock('../src/features/session/session-context', () => ({
+  useSession: jest.fn(),
+}));
+
+const mockedUseCart = jest.mocked(useCart);
+const mockedUseCatalog = jest.mocked(useCatalog);
+const mockedListOrders = jest.mocked(listOrders);
+const mockedUseSession = jest.mocked(useSession);
+const mockedRouterPush = jest.mocked(router.push);
+const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
+
+beforeEach(() => {
+  mockedRouterPush.mockReset();
+  mockedUseLocalSearchParams.mockReset();
+  mockCheckout.mockReset();
+
+  mockedUseCatalog.mockReturnValue({
+    error: null,
+    loading: false,
+    offline: false,
+    refresh: jest.fn(),
+    snapshot: { products: [], updated_at: '2026-06-03T00:00:00Z', version: 'test' },
+  });
+
+  mockedUseSession.mockReturnValue({
+    loading: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+    refreshProfile: jest.fn(),
+    register: jest.fn(),
+    user: { id: 1, name: 'Test_mob', phone: '79781234567' },
+  });
+});
+
+test('routes to orders with the created order id after checkout', async () => {
+  mockCheckout.mockResolvedValue({ order_id: 47, total: 37540 });
+  mockedUseCart.mockReturnValue({
+    addProduct: jest.fn(),
+    checkout: mockCheckout,
+    checkoutError: null,
+    checkingOut: false,
+    items: [{ id: 'pipe-38', name: 'Медная труба 3/8 · бухта 50 м', price: 14550, qty: 1 }],
+    itemsCount: 1,
+    quantityByProductId: {},
+    replaceItems: jest.fn(),
+    setQty: jest.fn(),
+    total: 14550,
+  });
+
+  const { getByText } = render(<CartScreen />);
+
+  fireEvent.press(getByText('Отправить заявку'));
+
+  await waitFor(() => {
+    expect(mockedRouterPush).toHaveBeenCalledWith({
+      params: { created: '47' },
+      pathname: '/orders',
+    });
+  });
+});
+
+test('shows a sent-order banner on the orders screen', async () => {
+  mockedUseLocalSearchParams.mockReturnValue({ created: '47' });
+  mockedListOrders.mockResolvedValue({
+    orders: [
+      {
+        comment: '',
+        created_at: '2026-06-02T20:10:00Z',
+        id: 47,
+        status: 'new',
+        total: 37540,
+      },
+    ],
+  });
+
+  const { queryByText } = render(<OrdersScreen />);
+
+  await waitFor(() => {
+    expect(queryByText('Заявка SH-00047 отправлена')).toBeTruthy();
+  });
+});

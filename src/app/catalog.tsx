@@ -11,6 +11,7 @@ import {
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StackBottomTabs } from '../components/stack-bottom-tabs';
 import { useCart } from '../features/cart/cart-context';
 import { showAddedToCartFeedback } from '../features/cart/cart-feedback';
 import { useCatalog } from '../features/catalog/catalog-context';
@@ -143,6 +144,7 @@ export default function CatalogScreen() {
           windowSize={7}
         />
       )}
+      <StackBottomTabs active="home" />
     </View>
   );
 }

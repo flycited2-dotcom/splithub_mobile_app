@@ -12,6 +12,7 @@ Rules:
 - [ ] **Full catalog performance** `(fixed in branch, needs APK verification)`
   - Symptom: tapping "Весь каталог" opens a very heavy catalog and scrolling becomes jerky.
   - Confirmed on TECNO BG6 via ADB: 140/140 janky frames, 90th percentile 117ms, 99th percentile 450ms, 3252 views, ~439 MB PSS.
+  - Reproduced again on the currently installed old APK on 2026-06-03: 111/111 janky frames, 90th percentile 113ms, 99th percentile 400ms, 3096 views.
   - Root cause: grouped full catalog currently renders all product cards/images inside one `ScrollView`.
   - Fix: replaced full-catalog grouped `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
   - Verification so far: unit tests, typecheck, and lint pass locally. Needs fresh APK install and ADB frame check.
@@ -41,17 +42,20 @@ Rules:
   - Expected: visible cart counter/badge and product/cart state feedback.
   - Fix: cart tab badge now shows total item count; catalog and product detail buttons show "В заявке · N" for products already added.
 
-- [ ] **Order submit indication**
+- [ ] **Order submit indication** `(fixed in branch, needs APK verification)`
   - Symptom: after submitting an order, there should be clearer confirmation and visible order count/status.
   - Expected: user sees that order was created and can find it immediately.
+  - Fix: cart now routes to orders with the created order id, and the orders screen shows a green "Заявка SH-xxxxx отправлена" banner.
+  - Verification so far: `order-submit-indication` test passes locally. Needs fresh APK install and real checkout check.
 
 - [ ] **Order form visual parity**
   - Symptom: current app form does not match the Telegram-approved/site-designed order form closely enough.
   - Need to compare against provided screenshots and approved design.
 
-- [ ] **Persistent bottom navigation on catalog routes**
+- [ ] **Persistent bottom navigation on catalog routes** `(fixed in branch, needs APK verification)`
   - Symptom: filtered catalog/product routes do not have bottom tab navigation, which makes navigation less obvious.
-  - Need to decide whether catalog/product should live inside tabs or keep stack navigation with clearer controls.
+  - Fix: added a stack bottom navigation bar to catalog and product detail screens with Главная/Корзина/Заказы/Профиль entries.
+  - Verification so far: `stack-catalog-navigation` test passes locally. Needs fresh APK install and device navigation check.
 
 ## P2
 
