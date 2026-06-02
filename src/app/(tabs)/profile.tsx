@@ -9,6 +9,7 @@ import {
   removeDevice,
   updateNotificationPreferences,
 } from '../../features/notifications/register-device';
+import { appConfig } from '../../features/home/app-config';
 import { colors, spacing } from '../../lib/theme';
 
 const defaultPreferences: NotificationPreferences = {
@@ -30,7 +31,7 @@ export default function ProfileScreen() {
         setExpoToken(token);
         if (token) setNotificationStatus('Устройство зарегистрировано для push-уведомлений');
       })
-      .catch(() => setNotificationStatus('Push-уведомления станут доступны после настройки EAS project ID'));
+      .catch(() => setNotificationStatus('Не удалось подключить push-уведомления. Проверьте разрешение уведомлений и подключение.'));
   }, [user]);
 
   function setPreference(key: keyof NotificationPreferences, enabled: boolean) {
@@ -96,13 +97,13 @@ export default function ProfileScreen() {
         </View>
         {notificationStatus ? <Text style={styles.muted}>{notificationStatus}</Text> : null}
       </View>
-      <Pressable onPress={() => void Linking.openURL('https://t.me/Byttehnikaopt')} style={styles.outline}>
+      <Pressable onPress={() => void Linking.openURL(appConfig.managerTelegramUrl)} style={styles.outline}>
         <Text style={styles.outlineText}>Написать менеджеру в Telegram</Text>
       </Pressable>
-      <Pressable onPress={() => void Linking.openURL('tel:+79785991369')} style={styles.outline}>
+      <Pressable onPress={() => void Linking.openURL(appConfig.managerPhoneUrl)} style={styles.outline}>
         <Text style={styles.outlineText}>Позвонить менеджеру</Text>
       </Pressable>
-      <Pressable onPress={() => void Linking.openURL('https://splithub.ru/')} style={styles.outline}>
+      <Pressable onPress={() => void Linking.openURL(appConfig.priceListUrl)} style={styles.outline}>
         <Text style={styles.outlineText}>Открыть прайс-лист</Text>
       </Pressable>
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>

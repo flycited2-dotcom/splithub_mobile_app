@@ -7,3 +7,7 @@ test('routes order status notification to order details', () => {
 test('routes promotion to filtered catalog', () => {
   expect(notificationTarget({ type: 'promotion', category: 'inv79' })).toBe('/catalog?filter=inv79&mode=flat');
 });
+
+test('routes promotion without category to the full catalog', () => {
+  expect(notificationTarget({ type: 'promotion' })).toBe('/catalog');
+});

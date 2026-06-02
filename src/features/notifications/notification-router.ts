@@ -3,7 +3,9 @@ export function notificationTarget(data: Record<string, unknown>) {
     return `/order/${data.order_id}`;
   }
   if (data.type === 'promotion') {
-    return `/catalog?filter=${encodeURIComponent(String(data.category ?? ''))}&mode=flat`;
+    return data.category
+      ? `/catalog?filter=${encodeURIComponent(String(data.category))}&mode=flat`
+      : '/catalog';
   }
   if (data.type === 'manager_message') {
     return String(data.telegram_url ?? 'https://t.me/Byttehnikaopt');
