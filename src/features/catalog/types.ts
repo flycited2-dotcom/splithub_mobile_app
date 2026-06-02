@@ -2,8 +2,18 @@ export type Product = {
   id: string;
   sku: string;
   brand: string;
+  brandCode?: string;
   model: string;
   group: string;
+  series?: string;
+  factory?: string;
+  color?: string;
+  btu?: string;
+  area?: number;
+  cardBenef?: string;
+  compressor?: string;
+  freon?: string;
+  type?: string;
   price: number;
   stock: string;
   stockLabel: string;
