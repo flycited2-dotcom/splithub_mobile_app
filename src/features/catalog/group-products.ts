@@ -1,5 +1,23 @@
 import type { Product } from './types';
 
+export type CatalogSeries = {
+  name: string;
+  description?: string;
+  products: Product[];
+};
+
+export type CatalogBrand = {
+  name: string;
+  factory?: string;
+  series: CatalogSeries[];
+};
+
+export type CatalogSection = {
+  id: string;
+  label: string;
+  brands: CatalogBrand[];
+};
+
 const groupOrder = ['inv', 'onoff', 'pac_inv', 'pac_onoff', 'truba', 'poluprom', 'rashod', 'multi'];
 
 const groupLabels: Record<string, string> = {
@@ -13,7 +31,7 @@ const groupLabels: Record<string, string> = {
   multi: 'ЧЁРНЫЕ СПЛИТЫ',
 };
 
-export function groupProducts(products: Product[]) {
+export function groupProducts(products: Product[]): CatalogSection[] {
   return groupOrder.flatMap((group) => {
     const matching = products.filter((product) => product.group === group);
     if (!matching.length) return [];

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../features/cart/cart-context';
 import { showAddedToCartFeedback } from '../features/cart/cart-feedback';
 import { useCatalog } from '../features/catalog/catalog-context';
+import { catalogRows, type CatalogRow } from '../features/catalog/catalog-rows';
 import { filterProducts } from '../features/catalog/filter-products';
 import { groupProducts } from '../features/catalog/group-products';
 import { ProductCard } from '../features/catalog/ProductCard';
@@ -36,6 +36,7 @@ export default function CatalogScreen() {
     [filter, search, snapshot],
   );
   const sections = useMemo(() => groupProducts(products), [products]);
+  const rows = useMemo(() => catalogRows(sections), [sections]);
   const filterLabel = quickFilters.find((item) => item.id === filter)?.label;
 
   function add(product: Product) {
@@ -45,6 +46,38 @@ export default function CatalogScreen() {
 
   function renderProduct(product: Product) {
     return <ProductCard key={product.id} onAdd={add} product={product} />;
+  }
+
+  function renderCatalogRow(row: CatalogRow) {
+    switch (row.type) {
+      case 'section':
+        return (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>{row.label}</Text>
+          </View>
+        );
+      case 'brand':
+        return (
+          <View style={styles.brandHeader}>
+            <Text style={styles.brandName}>{row.name}</Text>
+            {row.factory ? <Text style={styles.factory}>Завод {row.factory}</Text> : null}
+          </View>
+        );
+      case 'series':
+        return (
+          <View style={styles.seriesHeader}>
+            <Text style={styles.seriesName}>{row.name}</Text>
+            {row.description ? <Text style={styles.seriesDescription}>{row.description}</Text> : null}
+          </View>
+        );
+      case 'products':
+        return (
+          <View style={styles.productRow}>
+            {row.products.map(renderProduct)}
+            {row.products.length === 1 ? <View style={styles.productSpacer} /> : null}
+          </View>
+        );
+    }
   }
 
   return (
@@ -83,33 +116,25 @@ export default function CatalogScreen() {
           columnWrapperStyle={styles.productRow}
           contentContainerStyle={[styles.flatList, stackScreenPadding(insets)]}
           data={products}
+          initialNumToRender={10}
           keyExtractor={(product) => product.id}
+          maxToRenderPerBatch={10}
           numColumns={2}
+          removeClippedSubviews
           renderItem={({ item }) => renderProduct(item)}
+          windowSize={7}
         />
       ) : (
-        <ScrollView contentContainerStyle={[styles.groupedList, stackScreenPadding(insets)]}>
-          {sections.map((section) => (
-            <View key={section.id} style={styles.section}>
-              <Text style={styles.sectionLabel}>{section.label}</Text>
-              {section.brands.map((brand) => (
-                <View key={brand.name} style={styles.brandBlock}>
-                  <View style={styles.brandHeader}>
-                    <Text style={styles.brandName}>{brand.name}</Text>
-                    {brand.factory ? <Text style={styles.factory}>Завод {brand.factory}</Text> : null}
-                  </View>
-                  {brand.series.map((series) => (
-                    <View key={series.name} style={styles.seriesBlock}>
-                      <Text style={styles.seriesName}>{series.name}</Text>
-                      {series.description ? <Text style={styles.seriesDescription}>{series.description}</Text> : null}
-                      <View style={styles.productGrid}>{series.products.map(renderProduct)}</View>
-                    </View>
-                  ))}
-                </View>
-              ))}
-            </View>
-          ))}
-        </ScrollView>
+        <FlatList
+          contentContainerStyle={[styles.groupedList, stackScreenPadding(insets)]}
+          data={rows}
+          initialNumToRender={10}
+          keyExtractor={(row) => row.id}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews
+          renderItem={({ item }) => renderCatalogRow(item)}
+          windowSize={7}
+        />
       )}
     </View>
   );
@@ -168,24 +193,25 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   productRow: {
+    flexDirection: 'row',
     gap: spacing.md,
+  },
+  productSpacer: {
+    width: '48%',
   },
   groupedList: {
     gap: spacing.xl,
     padding: spacing.lg,
     paddingTop: 0,
   },
-  section: {
-    gap: spacing.md,
+  sectionHeader: {
+    marginBottom: -spacing.sm,
   },
   sectionLabel: {
     color: colors.muted,
     fontSize: 15,
     fontWeight: '900',
     letterSpacing: 1.5,
-  },
-  brandBlock: {
-    gap: spacing.md,
   },
   brandHeader: {
     alignItems: 'center',
@@ -207,7 +233,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
-  seriesBlock: {
+  seriesHeader: {
     backgroundColor: '#F8FAFC',
     borderRadius: 14,
     gap: spacing.sm,
@@ -221,10 +247,5 @@ const styles = StyleSheet.create({
   seriesDescription: {
     color: colors.muted,
     fontSize: 12,
-  },
-  productGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
   },
 });
