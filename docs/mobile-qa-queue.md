@@ -22,14 +22,17 @@ Rules:
   - Fix: home screen now shows "Профиль" and routes to `/profile` when `user` exists.
   - Need to verify: real login/register API response, token persistence after app restart, and tab screens re-render on device.
 
-- [ ] **Mobile order notifications**
+- [ ] **Mobile order notifications** `(fixed in site branch, needs PHP/server verification)`
   - Symptom: mobile order notification in Telegram is English and lacks status buttons.
   - Expected: same Russian format and inline status buttons as normal website orders.
   - Scope: mobile order endpoint/order service only; do not modify storefront intake behavior.
+  - Fix: site branch `codex/mobile-notifications-russian` rewrites `api/lib/manager_notify.php` to Russian Telegram text, inline status buttons, and Telegram `CURLOPT_RESOLVE`.
+  - Verification gap: local PHP CLI is unavailable, so `tests/manager_notify_test.php` was added but not executed locally.
 
-- [ ] **Mobile order email**
+- [ ] **Mobile order email** `(fixed in site branch, needs PHP/server verification)`
   - Symptom: Telegram receives mobile order, email does not arrive.
-  - Need to verify whether mobile order service calls the same notification/email path as website orders.
+  - Fix: site branch `codex/mobile-notifications-russian` adds email duplicate for mobile orders through `EMAIL_TO`.
+  - Verification gap: needs PHP test or server smoke test after deploy.
 
 ## P1
 
