@@ -11,6 +11,7 @@ import {
 import { api } from '../../lib/api';
 import { cartStorage } from '../../lib/storage';
 import type { Product } from '../catalog/types';
+import { checkoutPayload } from './checkout-payload';
 import { cartReducer, type CartItem } from './cart-reducer';
 
 type CheckoutError = {
@@ -26,7 +27,7 @@ type CartContextValue = {
   addProduct: (product: Product, qty?: number) => void;
   setQty: (id: string, qty: number) => void;
   replaceItems: (items: CartItem[]) => void;
-  checkout: () => Promise<{ order_id: number; total: number } | null>;
+  checkout: (comment?: string) => Promise<{ order_id: number; total: number } | null>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -71,13 +72,13 @@ export function CartProvider({ children }: PropsWithChildren) {
       },
       setQty: (id, qty) => dispatch({ type: 'setQty', id, qty }),
       replaceItems: (nextItems) => dispatch({ type: 'replace', items: nextItems }),
-      checkout: async () => {
+      checkout: async (comment = '') => {
         setCheckoutError(null);
         setCheckingOut(true);
         try {
           const result = await api<{ order_id: number; total: number }>('create_order', {
             method: 'POST',
-            body: JSON.stringify({ items }),
+            body: JSON.stringify(checkoutPayload(items, comment)),
           });
           dispatch({ type: 'clear' });
           return result;
