@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -11,18 +10,22 @@ import {
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../features/cart/cart-context';
+import { showAddedToCartFeedback } from '../features/cart/cart-feedback';
 import { useCatalog } from '../features/catalog/catalog-context';
 import { filterProducts } from '../features/catalog/filter-products';
 import { groupProducts } from '../features/catalog/group-products';
 import { ProductCard } from '../features/catalog/ProductCard';
 import { quickFilters } from '../features/catalog/quick-filters';
 import type { Product } from '../features/catalog/types';
+import { stackScreenPadding } from '../lib/safe-area';
 import { colors, spacing } from '../lib/theme';
 
 export default function CatalogScreen() {
   const params = useLocalSearchParams<{ filter?: string; mode?: string }>();
+  const insets = useSafeAreaInsets();
   const { snapshot, loading, offline, error, refresh } = useCatalog();
   const { addProduct } = useCart();
   const [search, setSearch] = useState('');
@@ -37,7 +40,7 @@ export default function CatalogScreen() {
 
   function add(product: Product) {
     addProduct(product);
-    Alert.alert('Добавлено в заявку', product.model);
+    showAddedToCartFeedback(product.model);
   }
 
   function renderProduct(product: Product) {
@@ -78,14 +81,14 @@ export default function CatalogScreen() {
       {flatMode ? (
         <FlatList
           columnWrapperStyle={styles.productRow}
-          contentContainerStyle={styles.flatList}
+          contentContainerStyle={[styles.flatList, stackScreenPadding(insets)]}
           data={products}
           keyExtractor={(product) => product.id}
           numColumns={2}
           renderItem={({ item }) => renderProduct(item)}
         />
       ) : (
-        <ScrollView contentContainerStyle={styles.groupedList}>
+        <ScrollView contentContainerStyle={[styles.groupedList, stackScreenPadding(insets)]}>
           {sections.map((section) => (
             <View key={section.id} style={styles.section}>
               <Text style={styles.sectionLabel}>{section.label}</Text>

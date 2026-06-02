@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../../features/cart/cart-context';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { cancelOrder, loadOrder, repeatOrder } from '../../features/orders/orders-repository';
 import type { Order } from '../../features/orders/types';
+import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 export default function OrderDetailsScreen() {
   const params = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
   const orderId = Number(params.id);
   const { snapshot } = useCatalog();
   const { replaceItems } = useCart();
@@ -62,7 +65,7 @@ export default function OrderDetailsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: order ? `SH-${String(order.id).padStart(5, '0')}` : 'Заказ' }} />
-      <ScrollView contentContainerStyle={styles.screen}>
+      <ScrollView contentContainerStyle={[styles.screen, stackScreenPadding(insets)]}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {order ? (
           <>

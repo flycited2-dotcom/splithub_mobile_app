@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Link } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSession } from '../../features/session/session-context';
 import {
@@ -10,6 +11,7 @@ import {
   updateNotificationPreferences,
 } from '../../features/notifications/register-device';
 import { appConfig } from '../../features/home/app-config';
+import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
 const defaultPreferences: NotificationPreferences = {
@@ -19,6 +21,7 @@ const defaultPreferences: NotificationPreferences = {
 };
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { user, loading, logout } = useSession();
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
@@ -53,12 +56,12 @@ export default function ProfileScreen() {
   }
 
   if (loading) {
-    return <View style={styles.screen}><Text>Загрузка профиля...</Text></View>;
+    return <View style={[styles.screen, tabScreenPadding(insets)]}><Text>Загрузка профиля...</Text></View>;
   }
 
   if (!user) {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, tabScreenPadding(insets)]}>
         <Text style={styles.title}>Профиль</Text>
         <Text style={styles.muted}>Войдите с теми же данными, которые используете на сайте.</Text>
         <Link href="/auth/login" style={styles.primaryLink}>Войти</Link>
@@ -68,7 +71,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, tabScreenPadding(insets)]}>
       <Text style={styles.title}>{user.name}</Text>
       <Text style={styles.muted}>{user.phone}</Text>
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}

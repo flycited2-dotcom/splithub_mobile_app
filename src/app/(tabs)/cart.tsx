@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Link, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../../features/cart/cart-context';
 import { upsellProducts } from '../../features/cart/upsell-products';
 import { useCatalog } from '../../features/catalog/catalog-context';
+import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 export default function CartScreen() {
+  const insets = useSafeAreaInsets();
   const { snapshot } = useCatalog();
   const { items, total, addProduct, setQty, checkout, checkoutError, checkingOut } = useCart();
   const [comment, setComment] = useState('');
@@ -26,7 +29,7 @@ export default function CartScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView contentContainerStyle={[styles.content, tabScreenPadding(insets)]}>
       <Text style={styles.title}>Корзина</Text>
       {!items.length ? <Text style={styles.empty}>Корзина пока пуста</Text> : null}
 

@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { CartProvider } from '../features/cart/cart-context';
 import { CatalogProvider } from '../features/catalog/catalog-context';
@@ -26,16 +27,18 @@ function NotificationNavigation() {
 
 export default function RootLayout() {
   return (
-    <SessionProvider>
-      <CatalogProvider>
-        <CartProvider>
-          <StatusBar style="dark" />
-          <NotificationNavigation />
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-        </CartProvider>
-      </CatalogProvider>
-    </SessionProvider>
+    <SafeAreaProvider>
+      <SessionProvider>
+        <CatalogProvider>
+          <CartProvider>
+            <StatusBar style="dark" />
+            <NotificationNavigation />
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </CartProvider>
+        </CatalogProvider>
+      </SessionProvider>
+    </SafeAreaProvider>
   );
 }

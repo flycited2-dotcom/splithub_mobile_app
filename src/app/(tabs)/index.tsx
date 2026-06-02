@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { quickFilters, homeQuickFilterIds, polupromQuickFilterIds } from '../../features/catalog/quick-filters';
 import { appConfig } from '../../features/home/app-config';
+import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
 const filterById = new Map(quickFilters.map((filter) => [filter.id, filter]));
 
 export default function HomeScreen() {
   const [polupromOpen, setPolupromOpen] = useState(false);
+  const insets = useSafeAreaInsets();
   const homeFilters = useMemo(
     () => homeQuickFilterIds.flatMap((id) => filterById.get(id) ?? []),
     [],
@@ -28,7 +31,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView contentContainerStyle={[styles.content, tabScreenPadding(insets)]}>
       <View style={styles.topRow}>
         <Text style={styles.smallLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
         <Pressable onPress={() => router.push('/auth/login')} style={styles.loginButton}>

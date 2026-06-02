@@ -2,16 +2,20 @@ import { useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productShareData, shareUrls } from '../../features/catalog/share-product';
 import { useCart } from '../../features/cart/cart-context';
+import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
 
 export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
   const { snapshot } = useCatalog();
   const { addProduct } = useCart();
   const [qty, setQty] = useState(1);
@@ -19,7 +23,7 @@ export default function ProductDetailsScreen() {
 
   if (!product) {
     return (
-      <View style={styles.empty}>
+      <View style={[styles.empty, stackScreenPadding(insets)]}>
         <Text>Товар не найден</Text>
       </View>
     );
@@ -36,7 +40,7 @@ export default function ProductDetailsScreen() {
 
   function addToCart() {
     addProduct(selectedProduct, qty);
-    Alert.alert('Добавлено в заявку', `${selectedProduct.model} · ${qty} шт.`);
+    showAddedToCartFeedback(selectedProduct.model, qty);
   }
 
   async function copyLink() {
@@ -47,7 +51,7 @@ export default function ProductDetailsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: product.model }} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, stackScreenPadding(insets)]}>
         <Text style={styles.brand}>{product.brand}</Text>
         <Text style={styles.title}>{product.model}</Text>
         <Text style={styles.description}>{product.descShort}</Text>

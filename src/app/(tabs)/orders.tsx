@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Link, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { listOrders } from '../../features/orders/orders-repository';
 import type { Order, OrderStatus } from '../../features/orders/types';
 import { useSession } from '../../features/session/session-context';
+import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 const statusLabels: Record<OrderStatus, string> = {
@@ -17,6 +19,7 @@ const statusLabels: Record<OrderStatus, string> = {
 };
 
 export default function OrdersScreen() {
+  const insets = useSafeAreaInsets();
   const { user } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
@@ -37,7 +40,7 @@ export default function OrdersScreen() {
 
   if (!user) {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, tabScreenPadding(insets)]}>
         <Text style={styles.title}>Заказы</Text>
         <Text style={styles.muted}>Войдите, чтобы видеть историю и статусы заказов.</Text>
         <Link href="/auth/login" style={styles.link}>Войти</Link>
@@ -47,7 +50,7 @@ export default function OrdersScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
+    <ScrollView contentContainerStyle={[styles.screen, tabScreenPadding(insets)]}>
       <Text style={styles.title}>Мои заказы</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {!orders.length && !error ? <Text style={styles.muted}>Заказов пока нет</Text> : null}
