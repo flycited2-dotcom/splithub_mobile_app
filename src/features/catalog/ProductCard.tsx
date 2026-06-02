@@ -6,25 +6,30 @@ import type { Product } from './types';
 
 const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
 
-export function ProductCard({ product }: { product: Product }) {
+type ProductCardProps = {
+  product: Product;
+  onAdd: (product: Product) => void;
+};
+
+export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
-    <Link href={{ pathname: '/product/[id]', params: { id: product.id } }} asChild>
-      <Pressable style={styles.card}>
-        <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
-        <Text numberOfLines={1} style={styles.brand}>
-          {product.brand}
-        </Text>
-        <Text numberOfLines={2} style={styles.model}>
-          {product.model}
-        </Text>
-        <View style={styles.footer}>
-          <Text style={styles.price}>{formatPrice(product.price)}</Text>
+    <View style={styles.card}>
+      <Link href={{ pathname: '/product/[id]', params: { id: product.id } }} asChild>
+        <Pressable style={styles.details}>
+          <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
+          <Text numberOfLines={1} style={styles.brand}>{product.brand}</Text>
+          <Text numberOfLines={2} style={styles.model}>{product.model}</Text>
+          {product.descShort ? <Text numberOfLines={2} style={styles.description}>{product.descShort}</Text> : null}
           <Text style={[styles.stock, product.stock !== 'in_stock' && styles.stockMuted]}>
             {product.stockLabel}
           </Text>
-        </View>
+          <Text style={styles.price}>{formatPrice(product.price)}</Text>
+        </Pressable>
+      </Link>
+      <Pressable onPress={() => onAdd(product)} style={styles.addButton}>
+        <Text style={styles.addText}>Заказать</Text>
       </Pressable>
-    </Link>
+    </View>
   );
 }
 
@@ -32,17 +37,19 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderColor: colors.border,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    flex: 1,
-    minHeight: 242,
+    overflow: 'hidden',
+    width: '48%',
+  },
+  details: {
+    gap: spacing.xs,
     padding: spacing.sm,
   },
   image: {
     backgroundColor: colors.background,
     borderRadius: 10,
-    height: 110,
-    marginBottom: spacing.sm,
+    height: 126,
     resizeMode: 'contain',
     width: '100%',
   },
@@ -50,28 +57,42 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 11,
     fontWeight: '700',
+    marginTop: spacing.xs,
   },
   model: {
     color: colors.text,
-    flex: 1,
     fontSize: 14,
-    fontWeight: '700',
-    marginTop: spacing.xs,
-  },
-  footer: {
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  price: {
-    color: colors.accentDark,
-    fontSize: 16,
     fontWeight: '800',
+    minHeight: 34,
+  },
+  description: {
+    color: colors.muted,
+    fontSize: 11,
+    minHeight: 28,
   },
   stock: {
     color: colors.success,
     fontSize: 11,
+    fontWeight: '700',
   },
   stockMuted: {
     color: colors.muted,
+  },
+  price: {
+    color: colors.accentDark,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: colors.accent,
+    margin: spacing.sm,
+    marginTop: 0,
+    padding: spacing.sm,
+    borderRadius: 10,
+  },
+  addText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
 });

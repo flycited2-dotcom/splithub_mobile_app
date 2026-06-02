@@ -4,6 +4,6 @@ test('routes order status notification to order details', () => {
   expect(notificationTarget({ type: 'order_status', order_id: 42 })).toBe('/order/42');
 });
 
-test('routes promotion to catalog', () => {
-  expect(notificationTarget({ type: 'promotion', category: 'inv' })).toBe('/?category=inv');
+test('routes promotion to filtered catalog', () => {
+  expect(notificationTarget({ type: 'promotion', category: 'inv79' })).toBe('/catalog?filter=inv79&mode=flat');
 });

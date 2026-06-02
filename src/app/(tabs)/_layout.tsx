@@ -9,8 +9,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Каталог',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="grid-view" size={size} />,
+          title: 'Главная',
+          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="home" size={size} />,
         }}
       />
       <Tabs.Screen
