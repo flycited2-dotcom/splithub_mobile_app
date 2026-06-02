@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { quickFilters, homeQuickFilterIds, polupromQuickFilterIds } from '../../features/catalog/quick-filters';
 import { appConfig } from '../../features/home/app-config';
+import { useSession } from '../../features/session/session-context';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
@@ -13,6 +14,8 @@ const filterById = new Map(quickFilters.map((filter) => [filter.id, filter]));
 export default function HomeScreen() {
   const [polupromOpen, setPolupromOpen] = useState(false);
   const insets = useSafeAreaInsets();
+  const { loading, user } = useSession();
+  const authTarget = user ? '/profile' : '/auth/login';
   const homeFilters = useMemo(
     () => homeQuickFilterIds.flatMap((id) => filterById.get(id) ?? []),
     [],
@@ -34,8 +37,8 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={[styles.content, tabScreenPadding(insets)]}>
       <View style={styles.topRow}>
         <Text style={styles.smallLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
-        <Pressable onPress={() => router.push('/auth/login')} style={styles.loginButton}>
-          <Text style={styles.loginText}>Войти</Text>
+        <Pressable disabled={loading} onPress={() => router.push(authTarget as never)} style={styles.loginButton}>
+          <Text style={styles.loginText}>{loading ? '...' : user ? 'Профиль' : 'Войти'}</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/cart')} style={styles.orderButton}>
           <Text style={styles.orderText}>Заявка</Text>

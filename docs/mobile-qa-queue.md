@@ -16,9 +16,11 @@ Rules:
   - Fix: replaced full-catalog grouped `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
   - Verification so far: unit tests, typecheck, and lint pass locally. Needs fresh APK install and ADB frame check.
 
-- [ ] **Auth/session state after login or registration**
+- [ ] **Auth/session state after login or registration** `(partly fixed in branch, needs device/API verification)`
   - Symptom: user logs in/registers, but the app still shows the logged-out UI.
-  - Need to verify: API response shape, token persistence, `SessionProvider` refresh, and tab screens re-render.
+  - Confirmed code issue: the home screen button always showed "Войти" and ignored session state.
+  - Fix: home screen now shows "Профиль" and routes to `/profile` when `user` exists.
+  - Need to verify: real login/register API response, token persistence after app restart, and tab screens re-render on device.
 
 - [ ] **Mobile order notifications**
   - Symptom: mobile order notification in Telegram is English and lacks status buttons.
