@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs commit: `2127be7 fix: polish mobile checkout and price download`
+- Mobile HEAD before this handoff docs commit: `725e591 docs: record phone verification results`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -86,7 +86,9 @@ Device UI verification:
 - Full catalog screen shows bottom navigation entries: "Главная", "Корзина", "Заказы", "Профиль".
 - After tapping a catalog "Заказать" button, product button changed to "В заявке · 1".
 - Latest APK `2127be7`: stack bottom cart tab badge is visible as content-desc `1, Корзина`; opening cart shows the item and total.
-- Current phone profile is logged in as `Test_mob` / `79781234567`; home shows profile state, and profile screen shows the same user.
+- Current phone profile is logged in as `CodexReg1606` / `79780001606`; profile shows `Telegram: codex_test`.
+- Latest APK `2127be7`: registration for `CodexReg1606` changed the home top button to "Профиль"; after a cold app restart, home still showed "Профиль".
+- Latest APK `2127be7`: after logout, login with `79780001606` / `Test1234` returned to the same profile, home showed "Профиль", and a second cold restart kept the logged-in home state.
 - Earlier checkout `SH-00051` reproduced the stale first orders refresh. The code now injects the newly created order locally when server data is stale.
 - Latest APK `2127be7`: real checkout created `SH-00053`; alert showed "Заявка отправлена" and "Номер заявки: SH-00053"; orders screen immediately showed `SH-00053`, `31 990 ₽`, status `Новый`; cart badge cleared after submit.
 - Production check: `https://splithub.ru/api/mobile_pricelist.php` returns `404 Not Found` until the site endpoint is deployed.
@@ -96,8 +98,7 @@ Fresh EAS build caveat:
 
 ## Open Work
 
-- Login/session persistence test: restart app and confirm existing `Test_mob` session still shows "Профиль".
-- Registration flow test: register a fresh user, confirm home button changes to "Профиль", restart app, confirm token persistence.
+- Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
 - Mobile Telegram/email server deploy: verify PHP tests/server smoke first, then deploy isolated site branch changes, then check Telegram Russian text, inline status buttons, and email duplicate.
 - Direct price-list download: deploy site endpoint `api/mobile_pricelist.php`, then verify app button downloads `splithub-price-YYYY-MM-DD.csv` instead of opening the site homepage.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.

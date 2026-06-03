@@ -18,12 +18,13 @@ Safety rules:
   - Latest APK `2127be7`, EAS build `7d53924f-6c70-4ac3-9b61-43a820582904`: full catalog opens and scrolls on TECNO BG6; measured 58 frames, 7 janky frames (12.07%), p50 10ms, p90 25ms, p95 150ms, p99 300ms, slow bitmap uploads 0.
   - Residual: legacy jank counter still reported 35.73%, so visual polish can continue later, but the blocking freeze/jitter regression is no longer reproduced.
 
-- [ ] **Auth/session state after login or registration** `(login state verified on device, registration path still pending)`
+- [x] **Auth/session state after login or registration** `(fixed and APK-verified on TECNO BG6)`
   - Symptom: user logs in/registers, but the app can still show the logged-out UI.
   - Code fix: the home screen now reads `useSession()`, shows "Профиль" when `user` exists, and routes to `/profile`.
-  - Device status on 2026-06-03: current phone session is logged in as `Test_mob` / `79781234567`; home top button shows profile state, and profile screen shows the same user. The old "logged in but shown as logged out" state is not reproduced.
-  - Latest APK `2127be7`: after reinstall/launch, the home screen still opens in logged-in profile state.
-  - Need: test registration flow and app restart/token persistence.
+  - Latest APK `2127be7`: registration for `CodexReg1606` / `79780001606` succeeded, profile showed `Telegram: codex_test`, and home switched to "Профиль".
+  - Latest APK `2127be7`: after force-stop/cold start, home still showed "Профиль".
+  - Latest APK `2127be7`: after logout, login with the same credentials returned to `CodexReg1606`; home showed "Профиль", and a second cold start preserved the logged-in state.
+  - Residual: keep watching for the user-reported old state on other accounts or older installed APKs; it was not reproduced on the current APK.
 
 - [ ] **Mobile order notifications in Telegram** `(site branch fixed, production/server verification pending)`
   - Symptom from user screenshots: mobile order `SH-00047` still arrived in English and without status buttons.
