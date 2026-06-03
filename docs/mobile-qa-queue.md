@@ -2,65 +2,65 @@
 
 Updated: 2026-06-03
 
-Rules:
+Safety rules:
 - Do not change the storefront flow in `send.php` or `index.html`.
 - Server fixes for the app must stay isolated in mobile endpoints and `api/lib/*`.
 - Keep `TG_FORCE_IP`, Telegram `CURLOPT_RESOLVE`, and fail-open storefront order intake intact.
+- Catalog truth for Splithub is `products.js` on the site side: 275 active items with owner prices.
 
 ## P0
 
-- [ ] **Full catalog performance** `(fixed in branch, needs APK verification)`
-  - Symptom: tapping "Весь каталог" opens a very heavy catalog and scrolling becomes jerky.
-  - Confirmed on TECNO BG6 via ADB: 140/140 janky frames, 90th percentile 117ms, 99th percentile 450ms, 3252 views, ~439 MB PSS.
-  - Reproduced again on the currently installed old APK on 2026-06-03: 111/111 janky frames, 90th percentile 113ms, 99th percentile 400ms, 3096 views.
-  - Root cause: grouped full catalog currently renders all product cards/images inside one `ScrollView`.
-  - Fix: replaced full-catalog grouped `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
-  - Verification so far: unit tests, typecheck, and lint pass locally. Needs fresh APK install and ADB frame check.
+- [x] **Full catalog performance** `(fixed and APK-verified on TECNO BG6)`
+  - Symptom: tapping "Весь каталог" opened a very heavy catalog and scrolling became jerky.
+  - Old installed APK baseline on 2026-06-03: 111/111 janky frames, p90 113ms, p99 400ms, 3096 attached views, slow bitmap uploads 111.
+  - Fix: replaced grouped full-catalog `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
+  - Fresh APK `9325c2e`, EAS build `93cd4541-2969-42b6-a48c-473f428c758a`: 487 total frames, 32 janky frames (6.57%), p50 16ms, p90 24ms, p95 29ms, p99 73ms, 73 attached views, slow bitmap uploads 0.
+  - Residual: legacy jank counter still reported 35.73%, so visual polish can continue later, but the blocking freeze/jitter regression is no longer reproduced.
 
-- [ ] **Auth/session state after login or registration** `(partly fixed in branch, needs device/API verification)`
-  - Symptom: user logs in/registers, but the app still shows the logged-out UI.
-  - Confirmed code issue: the home screen button always showed "Войти" and ignored session state.
-  - Fix: home screen now shows "Профиль" and routes to `/profile` when `user` exists.
-  - Need to verify: real login/register API response, token persistence after app restart, and tab screens re-render on device.
+- [ ] **Auth/session state after login or registration** `(code fixed, real login still needs device/API verification)`
+  - Symptom: user logs in/registers, but the app can still show the logged-out UI.
+  - Code fix: the home screen now reads `useSession()`, shows "Профиль" when `user` exists, and routes to `/profile`.
+  - Device status on 2026-06-03: current phone session is logged out; profile screen correctly shows "Войти" and "Создать аккаунт". This does not prove the bug remains.
+  - Need: test real login/register with valid credentials, then app restart/token persistence.
 
-- [ ] **Mobile order notifications** `(fixed in site branch, needs PHP/server verification)`
-  - Symptom: mobile order notification in Telegram is English and lacks status buttons.
-  - Expected: same Russian format and inline status buttons as normal website orders.
-  - Scope: mobile order endpoint/order service only; do not modify storefront intake behavior.
-  - Fix: site branch `codex/mobile-notifications-russian` rewrites `api/lib/manager_notify.php` to Russian Telegram text, inline status buttons, and Telegram `CURLOPT_RESOLVE`.
-  - Verification gap: local PHP CLI is unavailable, so `tests/manager_notify_test.php` was added but not executed locally.
+- [ ] **Mobile order notifications in Telegram** `(site branch fixed, production/server verification pending)`
+  - Symptom from user screenshots: mobile order `SH-00047` still arrived in English and without status buttons.
+  - Expected: Russian Telegram text with the same inline status buttons as website orders.
+  - Site branch `codex/mobile-notifications-russian` changes mobile notification formatting and preserves `CURLOPT_RESOLVE`.
+  - Verification gap: local PHP CLI is unavailable; `tests/manager_notify_test.php` exists but was not executed locally. Needs server/PHP verification before deploy.
 
-- [ ] **Mobile order email** `(fixed in site branch, needs PHP/server verification)`
+- [ ] **Mobile order email duplicate** `(site branch fixed, production/server verification pending)`
   - Symptom: Telegram receives mobile order, email does not arrive.
-  - Fix: site branch `codex/mobile-notifications-russian` adds email duplicate for mobile orders through `EMAIL_TO`.
-  - Verification gap: needs PHP test or server smoke test after deploy.
+  - Site branch `codex/mobile-notifications-russian` adds email duplicate for mobile orders through `EMAIL_TO`.
+  - Need: PHP test or server smoke test after deploy.
 
 ## P1
 
-- [ ] **Cart/product added indication** `(fixed in branch, needs APK verification)`
-  - Symptom: after tapping order/add there is no persistent indication on the product card or order/cart tab.
-  - Expected: visible cart counter/badge and product/cart state feedback.
-  - Fix: cart tab badge now shows total item count; catalog and product detail buttons show "В заявке · N" for products already added.
+- [x] **Cart/product added indication** `(fixed and APK-verified)`
+  - Symptom: after tapping add/order there was no persistent indication on product card or cart tab.
+  - Fix: cart tab badge shows total item count; catalog and product detail buttons show "В заявке · N" for products already added.
+  - Device verification on fresh APK: after tapping "Заказать", XML shows product button "В заявке · 1"; cart tab badge was visible as count `2` on the profile XML.
 
-- [ ] **Order submit indication** `(fixed in branch, needs APK verification)`
-  - Symptom: after submitting an order, there should be clearer confirmation and visible order count/status.
-  - Expected: user sees that order was created and can find it immediately.
-  - Fix: cart now routes to orders with the created order id, and the orders screen shows a green "Заявка SH-xxxxx отправлена" banner.
-  - Verification so far: `order-submit-indication` test passes locally. Needs fresh APK install and real checkout check.
+- [ ] **Order submit indication** `(code fixed, real checkout still needs login)`
+  - Symptom: after submitting an order, the user needed clearer confirmation and visible order status.
+  - Fix: cart routes to orders with created order id; orders screen shows a green "Заявка SH-xxxxx отправлена" banner.
+  - Local verification: `order-submit-indication` test passed before build.
+  - Need: logged-in device checkout test against API.
 
 - [ ] **Order form visual parity**
-  - Symptom: current app form does not match the Telegram-approved/site-designed order form closely enough.
-  - Need to compare against provided screenshots and approved design.
+  - Symptom: current app form does not yet match the Telegram-approved/site-designed order form closely enough.
+  - Need: compare against provided screenshots after auth/checkout path is verified.
 
-- [ ] **Persistent bottom navigation on catalog routes** `(fixed in branch, needs APK verification)`
-  - Symptom: filtered catalog/product routes do not have bottom tab navigation, which makes navigation less obvious.
-  - Fix: added a stack bottom navigation bar to catalog and product detail screens with Главная/Корзина/Заказы/Профиль entries.
-  - Verification so far: `stack-catalog-navigation` test passes locally. Needs fresh APK install and device navigation check.
+- [ ] **Persistent bottom navigation on catalog stack routes** `(mostly fixed, one device check left)`
+  - Fix: added stack bottom navigation with "Главная", "Корзина", "Заказы", "Профиль" to catalog and product detail screens.
+  - Device verification on fresh APK: full catalog XML/screenshot shows the bottom navigation entries.
+  - Need: tap into a product detail route on the same APK and confirm the bottom navigation remains visible there too.
 
 ## P2
 
 - [ ] **Top/bottom safe-area polish**
-  - First fix committed in `5851f96`; needs verification on the new APK once EAS build finishes.
+  - First fix committed in `5851f96`; continue visual polish after the P0/P1 functional bugs are closed.
 
 - [ ] **Replace modal add-to-cart alerts**
-  - First fix committed in `5851f96`; needs verification on the new APK once EAS build finishes.
+  - Earlier implementation still used a blocking "Добавлено в заявку" modal on some paths.
+  - Current priority is persistent counters/badges; replace remaining modal alerts with non-blocking feedback in the next polish pass.
