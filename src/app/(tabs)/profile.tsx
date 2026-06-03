@@ -3,6 +3,7 @@ import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react
 import { Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useCatalog } from '../../features/catalog/catalog-context';
 import { useSession } from '../../features/session/session-context';
 import {
   type NotificationPreferences,
@@ -11,7 +12,11 @@ import {
   updateNotificationPreferences,
 } from '../../features/notifications/register-device';
 import { appConfig } from '../../features/home/app-config';
-import { downloadPriceList, getPriceListDownloadErrorMessage } from '../../features/home/price-list-download';
+import {
+  downloadPriceList,
+  getPriceListDownloadErrorMessage,
+  type PriceListFormat,
+} from '../../features/home/price-list-download';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
@@ -24,6 +29,8 @@ const defaultPreferences: NotificationPreferences = {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, loading, logout } = useSession();
+  const { snapshot } = useCatalog();
+  const products = snapshot?.products;
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
   const [priceDownloading, setPriceDownloading] = useState(false);
@@ -57,11 +64,19 @@ export default function ProfileScreen() {
     }
   }
 
-  async function handlePriceListDownload() {
+  function showPriceListFormatPicker() {
+    Alert.alert('Скачать прайс', 'Выберите формат файла для сохранения на телефон.', [
+      { text: 'PDF', onPress: () => void handlePriceListDownload('pdf') },
+      { text: 'Excel', onPress: () => void handlePriceListDownload('excel') },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
+  }
+
+  async function handlePriceListDownload(format: PriceListFormat) {
     setPriceDownloading(true);
     try {
-      const file = await downloadPriceList(appConfig.priceListUrl);
-      Alert.alert('Прайс загружен', `Файл ${file.fileName} скачан в приложение.`);
+      const file = await downloadPriceList(format, products ?? []);
+      Alert.alert('Прайс сохранён', `Файл ${file.fileName} сохранён в выбранную папку телефона.`);
     } catch (error) {
       Alert.alert('Прайс не скачался', getPriceListDownloadErrorMessage(error));
     } finally {
@@ -122,9 +137,9 @@ export default function ProfileScreen() {
       </Pressable>
       <Pressable
         disabled={priceDownloading}
-        onPress={() => void handlePriceListDownload()}
+        onPress={showPriceListFormatPicker}
         style={[styles.outline, priceDownloading && styles.disabledButton]}>
-        <Text style={styles.outlineText}>{priceDownloading ? 'Скачиваем прайс...' : 'Открыть прайс-лист'}</Text>
+        <Text style={styles.outlineText}>{priceDownloading ? 'Готовим прайс...' : 'Открыть прайс-лист'}</Text>
       </Pressable>
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>

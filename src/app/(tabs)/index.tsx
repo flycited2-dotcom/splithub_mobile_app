@@ -3,28 +3,33 @@ import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } 
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { quickFilters, homeQuickFilterIds, polupromQuickFilterIds } from '../../features/catalog/quick-filters';
+import { homeQuickFilterIds, polupromQuickFilterIds, visibleQuickFilters } from '../../features/catalog/quick-filters';
+import { useCatalog } from '../../features/catalog/catalog-context';
 import { appConfig } from '../../features/home/app-config';
-import { downloadPriceList, getPriceListDownloadErrorMessage } from '../../features/home/price-list-download';
+import {
+  downloadPriceList,
+  getPriceListDownloadErrorMessage,
+  type PriceListFormat,
+} from '../../features/home/price-list-download';
 import { useSession } from '../../features/session/session-context';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
-
-const filterById = new Map(quickFilters.map((filter) => [filter.id, filter]));
 
 export default function HomeScreen() {
   const [priceDownloading, setPriceDownloading] = useState(false);
   const [polupromOpen, setPolupromOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const { loading, user } = useSession();
+  const { snapshot } = useCatalog();
+  const products = snapshot?.products;
   const authTarget = user ? '/profile' : '/auth/login';
   const homeFilters = useMemo(
-    () => homeQuickFilterIds.flatMap((id) => filterById.get(id) ?? []),
-    [],
+    () => visibleQuickFilters(products, homeQuickFilterIds),
+    [products],
   );
   const polupromFilters = useMemo(
-    () => polupromQuickFilterIds.flatMap((id) => filterById.get(id) ?? []),
-    [],
+    () => visibleQuickFilters(products, polupromQuickFilterIds),
+    [products],
   );
 
   function openCatalog(filter?: string) {
@@ -35,11 +40,19 @@ export default function HomeScreen() {
     router.push({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);
   }
 
-  async function handlePriceListDownload() {
+  function showPriceListFormatPicker() {
+    Alert.alert('Скачать прайс', 'Выберите формат файла для сохранения на телефон.', [
+      { text: 'PDF', onPress: () => void handlePriceListDownload('pdf') },
+      { text: 'Excel', onPress: () => void handlePriceListDownload('excel') },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
+  }
+
+  async function handlePriceListDownload(format: PriceListFormat) {
     setPriceDownloading(true);
     try {
-      const file = await downloadPriceList(appConfig.priceListUrl);
-      Alert.alert('Прайс загружен', `Файл ${file.fileName} скачан в приложение.`);
+      const file = await downloadPriceList(format, products ?? []);
+      Alert.alert('Прайс сохранён', `Файл ${file.fileName} сохранён в выбранную папку телефона.`);
     } catch (error) {
       Alert.alert('Прайс не скачался', getPriceListDownloadErrorMessage(error));
     } finally {
@@ -80,9 +93,9 @@ export default function HomeScreen() {
 
       <Pressable
         disabled={priceDownloading}
-        onPress={() => void handlePriceListDownload()}
+        onPress={showPriceListFormatPicker}
         style={[styles.priceButton, priceDownloading && styles.disabledButton]}>
-        <Text style={styles.priceText}>{priceDownloading ? 'Скачиваем прайс...' : '⇩  Загрузить прайс'}</Text>
+        <Text style={styles.priceText}>{priceDownloading ? 'Готовим прайс...' : '⇩  Загрузить прайс'}</Text>
       </Pressable>
       <Pressable onPress={() => openCatalog()} style={styles.catalogButton}>
         <Text style={styles.catalogText}>▤  Весь каталог</Text>

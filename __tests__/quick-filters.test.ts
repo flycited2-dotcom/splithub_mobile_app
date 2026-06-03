@@ -1,4 +1,8 @@
-import { filterByQuickFilter } from '../src/features/catalog/quick-filters';
+import {
+  filterByQuickFilter,
+  homeQuickFilterIds,
+  visibleQuickFilters,
+} from '../src/features/catalog/quick-filters';
 
 const products = [
   { id: '1', group: 'inv', btu: '07', type: 'split', color: 'white' },
@@ -17,4 +21,18 @@ test('filters cassette semi-industrial products', () => {
 
 test('filters black split products', () => {
   expect(filterByQuickFilter(products, 'multi').map((product) => product.id)).toEqual(['4']);
+});
+
+test('keeps only quick filters that have matching products', () => {
+  const visibleIds = visibleQuickFilters(products, homeQuickFilterIds).map((filter) => filter.id);
+
+  expect(visibleIds).toContain('inv79');
+  expect(visibleIds).toContain('inv12');
+  expect(visibleIds).toContain('poluprom');
+  expect(visibleIds).toContain('multi');
+  expect(visibleIds).not.toContain('rashod');
+});
+
+test('keeps configured quick filters while catalog is still loading', () => {
+  expect(visibleQuickFilters(null, ['rashod']).map((filter) => filter.id)).toEqual(['rashod']);
 });

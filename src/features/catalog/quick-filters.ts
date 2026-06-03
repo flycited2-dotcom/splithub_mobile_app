@@ -66,3 +66,12 @@ export function filterByQuickFilter(products: Product[], filterId: string) {
     ? products.filter(filter.matches)
     : products.filter((product) => !filterId || product.group === filterId);
 }
+
+export function visibleQuickFilters(products: Product[] | null | undefined, filterIds: string[]) {
+  const filters = filterIds.flatMap((id) => quickFilters.find((item) => item.id === id) ?? []);
+  if (!products) {
+    return filters;
+  }
+
+  return filters.filter((filter) => products.some(filter.matches));
+}

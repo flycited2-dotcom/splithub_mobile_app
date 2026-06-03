@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react-native';
 
 import HomeScreen from '../src/app/(tabs)/index';
+import { useCatalog } from '../src/features/catalog/catalog-context';
 import { useSession } from '../src/features/session/session-context';
 
 jest.mock('expo-router', () => ({
@@ -17,7 +18,22 @@ jest.mock('../src/features/session/session-context', () => ({
   useSession: jest.fn(),
 }));
 
+jest.mock('../src/features/catalog/catalog-context', () => ({
+  useCatalog: jest.fn(),
+}));
+
 const mockedUseSession = jest.mocked(useSession);
+const mockedUseCatalog = jest.mocked(useCatalog);
+
+beforeEach(() => {
+  mockedUseCatalog.mockReturnValue({
+    error: null,
+    loading: true,
+    offline: false,
+    refresh: jest.fn(),
+    snapshot: null,
+  });
+});
 
 test('shows profile entry on home when the user is signed in', () => {
   mockedUseSession.mockReturnValue({
