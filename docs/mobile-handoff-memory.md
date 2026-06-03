@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs commit: `1ade685 fix: download price list inside app`
+- Mobile HEAD before this handoff docs update: `f2c3487 feat: save price list as pdf or excel`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -54,6 +54,14 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - app downloads through `expo-file-system` instead of opening a browser link
   - site branch has isolated endpoint `api/mobile_pricelist.php`
   - production endpoint was deployed on 2026-06-03 and now returns CSV successfully
+- Price-list export was upgraded on 2026-06-03:
+  - home/profile now ask for `PDF` or `Excel`
+  - Excel is generated as an `.xls` HTML table from the loaded mobile catalog
+  - PDF is generated through `expo-print`
+  - both formats are saved through Android Storage Access Framework into a user-selected phone folder, not only the app cache
+  - the old "Файл скачан в приложение" message was replaced with "сохранён в выбранную папку телефона"
+  - `expo-print` was added, so a fresh APK is required before device testing this feature
+- Home quick filters now hide empty sections after the catalog snapshot is loaded. If "Полупром" or "Чёрные сплиты" has no matching products, the button is removed; while loading, configured buttons remain visible to avoid flicker.
 
 ## Last Known Verification
 
@@ -73,6 +81,13 @@ Local checks on 2026-06-03 after the in-app price-list download fix:
 - `npm.cmd test -- --runInBand`: passed, 21 suites / 40 tests
 - `npm.cmd run typecheck`: passed
 - `npm.cmd run lint`: passed
+
+Local checks on 2026-06-03 after the PDF/Excel phone-save update:
+- `npm.cmd test -- --runTestsByPath __tests__\price-list-download.test.tsx __tests__\quick-filters.test.ts`: passed, 2 suites / 9 tests
+- `npm.cmd test -- --runInBand`: passed, 21 suites / 43 tests
+- `npm.cmd run typecheck`: passed
+- `npm.cmd run lint`: passed
+- `npx.cmd expo-doctor`: not a valid success signal in this run; local checks passed, but Expo API checks timed out against `exp.host:443`.
 
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
@@ -107,12 +122,19 @@ Device UI verification:
 
 Fresh EAS build caveat:
 - Build `acdec81f-3d7c-42d1-863b-f2e0be935428` finished on EAS but was built from old commit `b95d3b8`, so do not install it as the fixed APK.
+- Build `af6018bc-a67a-4d74-a657-cf6e5b4651e0` was started by mistake from commit `568ebc6` and canceled.
+- Correct EAS preview build for PDF/Excel update:
+  - Build id: `6f80cd5a-4af9-4be8-93d4-4fc94f602f25`
+  - Commit: `f2c3487ba7100cf18c2bc312d66aae218c2c4b64`
+  - Status at handoff: in queue
+  - Logs: `https://expo.dev/accounts/alextsarev/projects/splithub/builds/6f80cd5a-4af9-4be8-93d4-4fc94f602f25`
+  - After it finishes, download the APK, save it under `artifacts/`, install on device `11000373CD011362`, and verify both PDF and Excel save into a phone folder.
 
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
 - Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
-- Direct price-list download: deployed and APK-verified on TECNO BG6.
+- Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed and pushed, but still needs the fresh APK from EAS build `6f80cd5a-4af9-4be8-93d4-4fc94f602f25` before device verification.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
 
 ## Do Not Commit

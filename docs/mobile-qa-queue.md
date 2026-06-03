@@ -77,6 +77,21 @@ Safety rules:
   - Storefront smoke after deploy: `send.php` still accepts a no-id live-site-style order and returned `{"ok":true,"email":"sent","tg":"sent"}`.
   - Device verification after deploy: tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed "Прайс загружен" / "Файл splithub-price-2026-06-03.csv скачан в приложение."
 
+- [ ] **Price-list save as PDF or Excel into phone folder** `(committed and EAS build queued)`
+  - User correction: "скачан в приложение" is not enough; the file should be saved to the phone, with a choice between PDF and Excel.
+  - Code fix in `f2c3487`: home/profile show a format picker with `PDF`, `Excel`, and cancel.
+  - Code fix in `f2c3487`: Excel is generated as `.xls` from the loaded mobile catalog; PDF is generated through `expo-print`; both are saved through Android Storage Access Framework into a user-selected folder.
+  - Dependency: `expo-print` was added, so the old APK cannot fully verify this path.
+  - Local verification: `price-list-download` tests cover the format picker, Excel save, PDF save, folder-cancel error; full Jest/typecheck/lint passed.
+  - EAS preview build for device verification: `6f80cd5a-4af9-4be8-93d4-4fc94f602f25`, commit `f2c3487`, status at handoff: in queue.
+  - Remaining check: install the fresh APK when EAS finishes, tap "Загрузить прайс", save both PDF and Excel into a phone folder, and confirm files are visible/openable.
+
+- [x] **Hide empty home quick sections**
+  - User disliked the empty area/empty sections after "Полупром" and "Чёрные сплиты".
+  - Code fix in `f2c3487`: quick-filter buttons are derived from the loaded catalog and hidden when no products match the filter.
+  - Loading behavior: configured buttons stay visible while the catalog is still loading, to avoid a blank flicker.
+  - Local verification: `quick-filters` tests cover hiding an empty section and keeping configured filters while loading.
+
 ## P2
 
 - [ ] **Top/bottom safe-area polish**
