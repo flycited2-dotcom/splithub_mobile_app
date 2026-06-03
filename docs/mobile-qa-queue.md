@@ -62,13 +62,15 @@ Safety rules:
   - Code fix: stack bottom tabs now read `useCart()` and show the cart badge.
   - Fresh APK `2127be7` device verification: after adding a product from the catalog/product stack, XML shows cart tab content-desc `1, Корзина`; opening the cart shows the item and total.
 
-- [ ] **Direct price-list download from the app** `(code prepared, server deploy pending)`
+- [ ] **Direct price-list download from the app** `(app fixed and APK-verified, server deploy pending)`
   - User request: tapping "Загрузить прайс" should start a server download instead of opening the website.
   - Site code prepared: new isolated endpoint `api/mobile_pricelist.php` reads `products.js` and returns a UTF-8 CSV file with `Content-Disposition: attachment`.
-  - App code prepared: `appConfig.priceListUrl` now points to `https://splithub.ru/api/mobile_pricelist.php`.
+  - App code fixed: `appConfig.priceListUrl` points to `https://splithub.ru/api/mobile_pricelist.php`, and the button calls `downloadPriceList()` via `expo-file-system` instead of `Linking.openURL`.
+  - Local verification: `price-list-download` test covers no browser link, dated cache file name, and HTTP 404 server errors.
+  - Latest APK `1ade685`, EAS build `c657c6ce-6e45-4533-bc30-beaabedacfc7`: installed on TECNO BG6; tapping "Загрузить прайс" stayed inside the app and showed "Прайс не скачался" / "Не удалось скачать прайс: сервер вернул HTTP 404".
   - Safety: does not touch `send.php`, `index.html`, `products.js`, `products.json`, `config.php`, Telegram curl options, or storefront order intake.
   - Production check on 2026-06-03: `https://splithub.ru/api/mobile_pricelist.php` still returns `404 Not Found`; endpoint is pushed to the site branch but not deployed.
-  - Need: deploy the new endpoint to the site, then tap the app price button on device and confirm Android starts downloading the file.
+  - Need: deploy the new endpoint to the site, then tap the app price button on device and confirm the app downloads `splithub-price-YYYY-MM-DD.csv`.
 
 ## P2
 

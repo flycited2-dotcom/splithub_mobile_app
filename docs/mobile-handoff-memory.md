@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs commit: `725e591 docs: record phone verification results`
+- Mobile HEAD before this handoff docs commit: `1ade685 fix: download price list inside app`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -49,8 +49,9 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - `src/components/stack-bottom-tabs.tsx`
   - used by catalog/product detail screens
   - test: `__tests__/stack-catalog-navigation.test.tsx`
-- Direct price-list link was prepared:
+- Direct price-list download was prepared:
   - app points to `https://splithub.ru/api/mobile_pricelist.php`
+  - app downloads through `expo-file-system` instead of opening a browser link
   - site branch has isolated endpoint `api/mobile_pricelist.php`
   - production endpoint still returns 404 until deployed
 
@@ -68,14 +69,19 @@ Local checks on 2026-06-03 after the stale-order, stack badge, and price-link fi
 - `npm.cmd run lint`: passed
 - Site catalog parser check: `products.js` parses as 275 items; first item `1244`, price `22390`.
 
+Local checks on 2026-06-03 after the in-app price-list download fix:
+- `npm.cmd test -- --runInBand`: passed, 21 suites / 40 tests
+- `npm.cmd run typecheck`: passed
+- `npm.cmd run lint`: passed
+
 Fresh APK:
-- EAS build id: `7d53924f-6c70-4ac3-9b61-43a820582904`
-- APK URL: `https://expo.dev/artifacts/eas/gtAJYmEbKBAKADMo6HsBME.apk`
+- EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
+- APK URL: `https://expo.dev/artifacts/eas/quxQPHjAiGbConbM7rrD1t.apk`
 - Installed package: `ru.splithub.mobile`
 - Device: TECNO BG6, ADB id `11000373CD011362`
-- Install command used: `adb install -r -d artifacts\SplitHub-preview-2127be7.apk`
+- Install command used: `adb install -r -d artifacts\SplitHub-preview-1ade685.apk`
 - Install result: `Success`
-- Package `lastUpdateTime`: `2026-06-03 14:19:57`
+- Package `lastUpdateTime`: `2026-06-03 18:43:21`
 
 Device performance verification:
 - Old APK baseline after tapping "Весь каталог": 111/111 janky frames, p90 113ms, p99 400ms, 3096 attached views, slow bitmap uploads 111.
@@ -91,6 +97,7 @@ Device UI verification:
 - Latest APK `2127be7`: after logout, login with `79780001606` / `Test1234` returned to the same profile, home showed "Профиль", and a second cold restart kept the logged-in home state.
 - Earlier checkout `SH-00051` reproduced the stale first orders refresh. The code now injects the newly created order locally when server data is stale.
 - Latest APK `2127be7`: real checkout created `SH-00053`; alert showed "Заявка отправлена" and "Номер заявки: SH-00053"; orders screen immediately showed `SH-00053`, `31 990 ₽`, status `Новый`; cart badge cleared after submit.
+- Latest APK `1ade685`: home still showed logged-in "Профиль"; tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed app alert "Прайс не скачался" / "Не удалось скачать прайс: сервер вернул HTTP 404". This verifies the app no longer opens the browser for the price list; server deploy is still needed for a successful download.
 - Production check: `https://splithub.ru/api/mobile_pricelist.php` returns `404 Not Found` until the site endpoint is deployed.
 
 Fresh EAS build caveat:
@@ -100,7 +107,7 @@ Fresh EAS build caveat:
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
 - Mobile Telegram/email server deploy: verify PHP tests/server smoke first, then deploy isolated site branch changes, then check Telegram Russian text, inline status buttons, and email duplicate.
-- Direct price-list download: deploy site endpoint `api/mobile_pricelist.php`, then verify app button downloads `splithub-price-YYYY-MM-DD.csv` instead of opening the site homepage.
+- Direct price-list download: deploy site endpoint `api/mobile_pricelist.php`, then verify the already-updated app button downloads `splithub-price-YYYY-MM-DD.csv` successfully.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
 
 ## Do Not Commit
