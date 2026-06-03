@@ -53,7 +53,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - app points to `https://splithub.ru/api/mobile_pricelist.php`
   - app downloads through `expo-file-system` instead of opening a browser link
   - site branch has isolated endpoint `api/mobile_pricelist.php`
-  - production endpoint still returns 404 until deployed
+  - production endpoint was deployed on 2026-06-03 and now returns CSV successfully
 
 ## Last Known Verification
 
@@ -98,7 +98,12 @@ Device UI verification:
 - Earlier checkout `SH-00051` reproduced the stale first orders refresh. The code now injects the newly created order locally when server data is stale.
 - Latest APK `2127be7`: real checkout created `SH-00053`; alert showed "Заявка отправлена" and "Номер заявки: SH-00053"; orders screen immediately showed `SH-00053`, `31 990 ₽`, status `Новый`; cart badge cleared after submit.
 - Latest APK `1ade685`: home still showed logged-in "Профиль"; tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed app alert "Прайс не скачался" / "Не удалось скачать прайс: сервер вернул HTTP 404". This verifies the app no longer opens the browser for the price list; server deploy is still needed for a successful download.
-- Production check: `https://splithub.ru/api/mobile_pricelist.php` returns `404 Not Found` until the site endpoint is deployed.
+- Site deploy on 2026-06-03 uploaded only isolated mobile files with backups: `api/mobile.php`, `api/lib/manager_notify.php`, `api/mobile_pricelist.php`. Before replacement, server temp copies passed `php -l`, `tests/manager_notify_test.php`, and a remote CSV generation check.
+- Production price endpoint check after deploy: `https://splithub.ru/api/mobile_pricelist.php` returns `HTTP 200`, `Content-Type: text/csv; charset=utf-8`, `Content-Disposition: attachment; filename="splithub-price-2026-06-03.csv"`, 39377 bytes, first product `1244;MDV;...;22390`.
+- Storefront smoke test after deploy: `POST https://splithub.ru/send.php` with a live-site-style order body and no item `id` returned `HTTP 200` / `{"ok":true,"email":"sent","tg":"sent"}`.
+- Mobile API smoke after deploy: registered test user `797819050001`, created order `SH-00054` via `api/mobile.php?action=create_order`, response `ok=true`, `total=22390`; `orders` endpoint returned the same order with status `new`.
+- Latest APK `1ade685` after site deploy: tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed app alert "Прайс загружен" / "Файл splithub-price-2026-06-03.csv скачан в приложение."
+- Latest APK `1ade685` catalog spot check after deploy: opened "Весь каталог", performed six ADB scrolls, app stayed focused in `ru.splithub.mobile`, and UI dump contained product cards.
 
 Fresh EAS build caveat:
 - Build `acdec81f-3d7c-42d1-863b-f2e0be935428` finished on EAS but was built from old commit `b95d3b8`, so do not install it as the fixed APK.
@@ -106,8 +111,8 @@ Fresh EAS build caveat:
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
-- Mobile Telegram/email server deploy: verify PHP tests/server smoke first, then deploy isolated site branch changes, then check Telegram Russian text, inline status buttons, and email duplicate.
-- Direct price-list download: deploy site endpoint `api/mobile_pricelist.php`, then verify the already-updated app button downloads `splithub-price-YYYY-MM-DD.csv` successfully.
+- Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
+- Direct price-list download: deployed and APK-verified on TECNO BG6.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
 
 ## Do Not Commit

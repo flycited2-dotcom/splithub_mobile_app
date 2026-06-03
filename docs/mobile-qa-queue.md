@@ -26,16 +26,20 @@ Safety rules:
   - Latest APK `2127be7`: after logout, login with the same credentials returned to `CodexReg1606`; home showed "Профиль", and a second cold start preserved the logged-in state.
   - Residual: keep watching for the user-reported old state on other accounts or older installed APKs; it was not reproduced on the current APK.
 
-- [ ] **Mobile order notifications in Telegram** `(site branch fixed, production/server verification pending)`
+- [ ] **Mobile order notifications in Telegram** `(deployed and server-smoke-verified, human visual confirmation pending)`
   - Symptom from user screenshots: mobile order `SH-00047` still arrived in English and without status buttons.
   - Expected: Russian Telegram text with the same inline status buttons as website orders.
-  - Site branch `codex/mobile-notifications-russian` changes mobile notification formatting and preserves `CURLOPT_RESOLVE`.
-  - Verification gap: local PHP CLI is unavailable; `tests/manager_notify_test.php` exists but was not executed locally. Needs server/PHP verification before deploy.
+  - Deployed on 2026-06-03: `api/mobile.php` and `api/lib/manager_notify.php` only; `send.php`, `index.html`, catalog files, and Telegram resolve settings were not changed.
+  - Server verification before deploy: temp copies passed `php -l`; `tests/manager_notify_test.php` passed on the server; Telegram curl keeps `CURLOPT_RESOLVE`.
+  - Production smoke: mobile API test order `SH-00054` was created successfully and returned through the `orders` endpoint with status `new`.
+  - Remaining check: user should visually confirm that the Telegram message for `SH-00054` is Russian and has inline status buttons.
 
-- [ ] **Mobile order email duplicate** `(site branch fixed, production/server verification pending)`
+- [ ] **Mobile order email duplicate** `(deployed and API-smoke-verified, mailbox confirmation pending)`
   - Symptom: Telegram receives mobile order, email does not arrive.
-  - Site branch `codex/mobile-notifications-russian` adds email duplicate for mobile orders through `EMAIL_TO`.
-  - Need: PHP test or server smoke test after deploy.
+  - Deployed on 2026-06-03: `api/lib/manager_notify.php` now sends the mobile order duplicate through `EMAIL_TO`.
+  - Server verification: email HTML generation is covered by `tests/manager_notify_test.php`, which passed on the server.
+  - Production smoke: mobile order `SH-00054` triggered the deployed notification path.
+  - Remaining check: actual mailbox delivery must be confirmed in email inbox; accessible server logs did not expose the notification result.
 
 ## P1
 
@@ -62,15 +66,16 @@ Safety rules:
   - Code fix: stack bottom tabs now read `useCart()` and show the cart badge.
   - Fresh APK `2127be7` device verification: after adding a product from the catalog/product stack, XML shows cart tab content-desc `1, Корзина`; opening the cart shows the item and total.
 
-- [ ] **Direct price-list download from the app** `(app fixed and APK-verified, server deploy pending)`
+- [x] **Direct price-list download from the app** `(deployed and APK-verified on TECNO BG6)`
   - User request: tapping "Загрузить прайс" should start a server download instead of opening the website.
   - Site code prepared: new isolated endpoint `api/mobile_pricelist.php` reads `products.js` and returns a UTF-8 CSV file with `Content-Disposition: attachment`.
   - App code fixed: `appConfig.priceListUrl` points to `https://splithub.ru/api/mobile_pricelist.php`, and the button calls `downloadPriceList()` via `expo-file-system` instead of `Linking.openURL`.
   - Local verification: `price-list-download` test covers no browser link, dated cache file name, and HTTP 404 server errors.
   - Latest APK `1ade685`, EAS build `c657c6ce-6e45-4533-bc30-beaabedacfc7`: installed on TECNO BG6; tapping "Загрузить прайс" stayed inside the app and showed "Прайс не скачался" / "Не удалось скачать прайс: сервер вернул HTTP 404".
   - Safety: does not touch `send.php`, `index.html`, `products.js`, `products.json`, `config.php`, Telegram curl options, or storefront order intake.
-  - Production check on 2026-06-03: `https://splithub.ru/api/mobile_pricelist.php` still returns `404 Not Found`; endpoint is pushed to the site branch but not deployed.
-  - Need: deploy the new endpoint to the site, then tap the app price button on device and confirm the app downloads `splithub-price-YYYY-MM-DD.csv`.
+  - Site deploy on 2026-06-03 uploaded only `api/mobile_pricelist.php`; production check returns `HTTP 200`, CSV 39377 bytes, filename `splithub-price-2026-06-03.csv`.
+  - Storefront smoke after deploy: `send.php` still accepts a no-id live-site-style order and returned `{"ok":true,"email":"sent","tg":"sent"}`.
+  - Device verification after deploy: tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed "Прайс загружен" / "Файл splithub-price-2026-06-03.csv скачан в приложение."
 
 ## P2
 
