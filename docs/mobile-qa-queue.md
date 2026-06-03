@@ -15,12 +15,14 @@ Safety rules:
   - Old installed APK baseline on 2026-06-03: 111/111 janky frames, p90 113ms, p99 400ms, 3096 attached views, slow bitmap uploads 111.
   - Fix: replaced grouped full-catalog `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
   - Fresh APK `9325c2e`, EAS build `93cd4541-2969-42b6-a48c-473f428c758a`: 487 total frames, 32 janky frames (6.57%), p50 16ms, p90 24ms, p95 29ms, p99 73ms, 73 attached views, slow bitmap uploads 0.
+  - Latest APK `2127be7`, EAS build `7d53924f-6c70-4ac3-9b61-43a820582904`: full catalog opens and scrolls on TECNO BG6; measured 58 frames, 7 janky frames (12.07%), p50 10ms, p90 25ms, p95 150ms, p99 300ms, slow bitmap uploads 0.
   - Residual: legacy jank counter still reported 35.73%, so visual polish can continue later, but the blocking freeze/jitter regression is no longer reproduced.
 
 - [ ] **Auth/session state after login or registration** `(login state verified on device, registration path still pending)`
   - Symptom: user logs in/registers, but the app can still show the logged-out UI.
   - Code fix: the home screen now reads `useSession()`, shows "Профиль" when `user` exists, and routes to `/profile`.
   - Device status on 2026-06-03: current phone session is logged in as `Test_mob` / `79781234567`; home top button shows profile state, and profile screen shows the same user. The old "logged in but shown as logged out" state is not reproduced.
+  - Latest APK `2127be7`: after reinstall/launch, the home screen still opens in logged-in profile state.
   - Need: test registration flow and app restart/token persistence.
 
 - [ ] **Mobile order notifications in Telegram** `(site branch fixed, production/server verification pending)`
@@ -41,29 +43,30 @@ Safety rules:
   - Fix: cart tab badge shows total item count; catalog and product detail buttons show "В заявке · N" for products already added.
   - Device verification on fresh APK: after tapping "Заказать", XML shows product button "В заявке · 1"; cart tab badge was visible as count `2` on the profile XML.
 
-- [ ] **Order submit indication** `(device reproduced, code fixed, fresh APK verification pending)`
+- [x] **Order submit indication** `(fixed and APK-verified)`
   - Symptom: after submitting an order, the user needed clearer confirmation and visible order status.
   - Device status on 2026-06-03: logged-in checkout created real order `SH-00051`; alert and green banner appeared, but the first orders refresh could still be stale and omit the newly created order until manual refresh.
   - Code fix: cart now routes with both created order id and total; orders screen prepends the just-created order locally when the server list is stale.
   - Local verification: `order-submit-indication` test covers the stale-refresh case and passes.
-  - Need: install fresh APK and repeat logged-in checkout.
+  - Fresh APK `2127be7` device verification: logged-in checkout created real test order `SH-00053`; alert showed "Заявка отправлена" / "Номер заявки: SH-00053"; orders screen immediately showed `SH-00053`, `31 990 ₽`, status `Новый`, and the cart badge was cleared.
 
 - [ ] **Order form visual parity**
   - Symptom: current app form does not yet match the Telegram-approved/site-designed order form closely enough.
   - Need: compare against provided screenshots after auth/checkout path is verified.
 
-- [ ] **Persistent bottom navigation on catalog stack routes** `(device-visible, stack cart badge code fixed, fresh APK verification pending)`
+- [x] **Persistent bottom navigation on catalog stack routes** `(fixed and APK-verified)`
   - Fix: added stack bottom navigation with "Главная", "Корзина", "Заказы", "Профиль" to catalog and product detail screens.
   - Device verification on fresh APK: full catalog XML/screenshot shows the bottom navigation entries.
   - Device status on 2026-06-03: product detail route keeps the stack bottom navigation, but cart tab did not show the count there.
   - Code fix: stack bottom tabs now read `useCart()` and show the cart badge.
-  - Need: install fresh APK and confirm the badge appears on catalog/product stack routes.
+  - Fresh APK `2127be7` device verification: after adding a product from the catalog/product stack, XML shows cart tab content-desc `1, Корзина`; opening the cart shows the item and total.
 
 - [ ] **Direct price-list download from the app** `(code prepared, server deploy pending)`
   - User request: tapping "Загрузить прайс" should start a server download instead of opening the website.
   - Site code prepared: new isolated endpoint `api/mobile_pricelist.php` reads `products.js` and returns a UTF-8 CSV file with `Content-Disposition: attachment`.
   - App code prepared: `appConfig.priceListUrl` now points to `https://splithub.ru/api/mobile_pricelist.php`.
   - Safety: does not touch `send.php`, `index.html`, `products.js`, `products.json`, `config.php`, Telegram curl options, or storefront order intake.
+  - Production check on 2026-06-03: `https://splithub.ru/api/mobile_pricelist.php` still returns `404 Not Found`; endpoint is pushed to the site branch but not deployed.
   - Need: deploy the new endpoint to the site, then tap the app price button on device and confirm Android starts downloading the file.
 
 ## P2
