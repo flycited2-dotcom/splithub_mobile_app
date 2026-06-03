@@ -8,4 +8,5 @@ test('keeps the website contact links in one mobile config', () => {
     '+7 978 839-40-42',
   ]);
   expect(appConfig.managerTelegramUrl).toBe('https://t.me/Byttehnikaopt');
+  expect(appConfig.priceListUrl).toBe('https://splithub.ru/api/mobile_pricelist.php');
 });

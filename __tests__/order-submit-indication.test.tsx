@@ -72,14 +72,14 @@ beforeEach(() => {
   });
 });
 
-test('routes to orders with the created order id after checkout', async () => {
+test('routes to orders with the created order id and total after checkout', async () => {
   mockCheckout.mockResolvedValue({ order_id: 47, total: 37540 });
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: mockCheckout,
     checkoutError: null,
     checkingOut: false,
-    items: [{ id: 'pipe-38', name: 'Медная труба 3/8 · бухта 50 м', price: 14550, qty: 1 }],
+    items: [{ id: 'pipe-38', name: 'РњРµРґРЅР°СЏ С‚СЂСѓР±Р° 3/8 В· Р±СѓС…С‚Р° 50 Рј', price: 14550, qty: 1 }],
     itemsCount: 1,
     quantityByProductId: {},
     replaceItems: jest.fn(),
@@ -93,7 +93,7 @@ test('routes to orders with the created order id after checkout', async () => {
 
   await waitFor(() => {
     expect(mockedRouterPush).toHaveBeenCalledWith({
-      params: { created: '47' },
+      params: { created: '47', createdTotal: '37540' },
       pathname: '/orders',
     });
   });
@@ -117,5 +117,27 @@ test('shows a sent-order banner on the orders screen', async () => {
 
   await waitFor(() => {
     expect(queryByText('Заявка SH-00047 отправлена')).toBeTruthy();
+  });
+});
+
+test('shows the created order immediately when the first orders refresh is stale', async () => {
+  mockedUseLocalSearchParams.mockReturnValue({ created: '51', createdTotal: '81870' });
+  mockedListOrders.mockResolvedValue({
+    orders: [
+      {
+        comment: '',
+        created_at: '2026-06-03T09:34:00Z',
+        id: 50,
+        status: 'new',
+        total: 109680,
+      },
+    ],
+  });
+
+  const { queryByText } = render(<OrdersScreen />);
+
+  await waitFor(() => {
+    expect(queryByText('SH-00051')).toBeTruthy();
+    expect(queryByText('81 870 ₽')).toBeTruthy();
   });
 });

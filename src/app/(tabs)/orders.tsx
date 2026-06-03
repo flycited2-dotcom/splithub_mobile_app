@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +20,7 @@ const statusLabels: Record<OrderStatus, string> = {
 
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ created?: string }>();
+  const params = useLocalSearchParams<{ created?: string; createdTotal?: string }>();
   const { user } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
@@ -28,6 +28,22 @@ export default function OrdersScreen() {
   const createdOrderNumber = Number.isFinite(createdOrderId) && createdOrderId > 0
     ? `SH-${String(createdOrderId).padStart(5, '0')}`
     : '';
+  const createdOrderTotal = typeof params.createdTotal === 'string' ? Number(params.createdTotal) : 0;
+  const displayedOrders = useMemo(() => {
+    if (!createdOrderId || !createdOrderTotal || orders.some((order) => order.id === createdOrderId)) {
+      return orders;
+    }
+
+    const createdOrder: Order = {
+      comment: '',
+      created_at: new Date().toISOString(),
+      id: createdOrderId,
+      status: 'new',
+      total: createdOrderTotal,
+    };
+
+    return [createdOrder, ...orders];
+  }, [createdOrderId, createdOrderTotal, orders]);
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -64,8 +80,8 @@ export default function OrdersScreen() {
         </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {!orders.length && !error ? <Text style={styles.muted}>Заказов пока нет</Text> : null}
-      {orders.map((order) => (
+      {!displayedOrders.length && !error ? <Text style={styles.muted}>Заказов пока нет</Text> : null}
+      {displayedOrders.map((order) => (
         <Pressable key={order.id} onPress={() => router.push(`/order/${order.id}`)} style={styles.card}>
           <View>
             <Text style={styles.orderNumber}>SH-{String(order.id).padStart(5, '0')}</Text>

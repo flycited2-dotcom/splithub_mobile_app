@@ -53,10 +53,16 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 ## Last Known Verification
 
 Local checks before the fresh APK build:
-- `npm.cmd test -- --runInBand`: passed, 20 suites / 35 tests
+- `npm.cmd test -- --runInBand`: passed, 20 suites / 37 tests
 - `npm.cmd run typecheck`: passed
 - `npm.cmd run lint`: passed
 - `npx.cmd expo-doctor`: passed, 21/21 checks
+
+Local checks on 2026-06-03 after the stale-order, stack badge, and price-link fixes:
+- `npm.cmd test -- --runInBand`: passed, 20 suites / 37 tests
+- `npm.cmd run typecheck`: passed
+- `npm.cmd run lint`: passed
+- Site catalog parser check: `products.js` parses as 275 items; first item `1244`, price `22390`.
 
 Fresh APK:
 - EAS build id: `93cd4541-2969-42b6-a48c-473f428c758a`
@@ -75,7 +81,12 @@ Device UI verification:
 - Full catalog screen shows bottom navigation entries: "Главная", "Корзина", "Заказы", "Профиль".
 - After tapping a catalog "Заказать" button, product button changed to "В заявке · 1".
 - Cart tab badge became visible on device XML.
-- Current phone profile is logged out; real login/register verification still needs valid credentials.
+- Current phone profile is logged in as `Test_mob` / `79781234567`; home shows profile state, and profile screen shows the same user.
+- Real checkout created `SH-00051`; alert and green banner appeared, but the first orders refresh was stale. Code now injects the newly created order locally when server data is stale; fresh APK verification pending.
+- Product detail route keeps bottom navigation, but the stack cart badge was missing. Code now shows the cart badge in stack bottom tabs; fresh APK verification pending.
+
+Fresh EAS build caveat:
+- Build `acdec81f-3d7c-42d1-863b-f2e0be935428` finished on EAS but was built from old commit `b95d3b8`, so do not install it as the fixed APK.
 
 ## Open Work
 
@@ -83,6 +94,7 @@ Device UI verification:
 - Real checkout test: submit an order from the logged-in app, confirm orders banner and order list update.
 - Product detail bottom nav: tap product detail route in the fresh APK and confirm bottom navigation remains visible.
 - Mobile Telegram/email server deploy: verify PHP tests/server smoke first, then deploy isolated site branch changes, then check Telegram Russian text, inline status buttons, and email duplicate.
+- Direct price-list download: deploy site endpoint `api/mobile_pricelist.php`, then verify app button downloads `splithub-price-YYYY-MM-DD.csv` instead of opening the site homepage.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
 
 ## Do Not Commit

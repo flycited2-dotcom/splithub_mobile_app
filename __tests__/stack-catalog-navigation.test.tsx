@@ -34,19 +34,22 @@ jest.mock('../src/features/catalog/catalog-context', () => ({
 const mockedUseCart = jest.mocked(useCart);
 const mockedUseCatalog = jest.mocked(useCatalog);
 
-test('shows bottom navigation on the stack catalog screen', () => {
+function mockCart(itemsCount: number) {
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: jest.fn(),
     checkoutError: null,
     checkingOut: false,
     items: [],
-    itemsCount: 0,
+    itemsCount,
     quantityByProductId: {},
     replaceItems: jest.fn(),
     setQty: jest.fn(),
     total: 0,
   });
+}
+
+function mockCatalog() {
   mockedUseCatalog.mockReturnValue({
     error: null,
     loading: false,
@@ -54,6 +57,11 @@ test('shows bottom navigation on the stack catalog screen', () => {
     refresh: jest.fn(),
     snapshot: { products: [], updated_at: '2026-06-03T00:00:00Z', version: 'test' },
   });
+}
+
+test('shows bottom navigation on the stack catalog screen', () => {
+  mockCart(0);
+  mockCatalog();
 
   const { queryByText } = render(<CatalogScreen />);
 
@@ -61,4 +69,13 @@ test('shows bottom navigation on the stack catalog screen', () => {
   expect(queryByText('Корзина')).toBeTruthy();
   expect(queryByText('Заказы')).toBeTruthy();
   expect(queryByText('Профиль')).toBeTruthy();
+});
+
+test('shows cart badge on the stack catalog screen', () => {
+  mockCart(2);
+  mockCatalog();
+
+  const { queryByText } = render(<CatalogScreen />);
+
+  expect(queryByText('2')).toBeTruthy();
 });

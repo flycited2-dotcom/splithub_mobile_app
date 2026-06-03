@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useCart } from '../features/cart/cart-context';
 import { colors, spacing } from '../lib/theme';
 
 type TabKey = 'home' | 'cart' | 'orders' | 'profile';
@@ -20,20 +21,29 @@ type Props = {
 
 export function StackBottomTabs({ active }: Props) {
   const insets = useSafeAreaInsets();
+  const { itemsCount } = useCart();
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + spacing.sm }]}>
       {tabs.map((tab) => {
         const isActive = active === tab.key;
         const color = isActive ? colors.accent : '#8A8A8A';
+        const badge = tab.key === 'cart' && itemsCount > 0 ? itemsCount : 0;
 
         return (
           <Pressable
-            accessibilityLabel={tab.label}
+            accessibilityLabel={badge ? `${badge}, ${tab.label}` : tab.label}
             key={tab.key}
             onPress={() => router.push(tab.href as never)}
             style={styles.tab}>
-            <MaterialIcons color={color} name={tab.icon} size={26} />
+            <View>
+              <MaterialIcons color={color} name={tab.icon} size={26} />
+              {badge ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{badge}</Text>
+                </View>
+              ) : null}
+            </View>
             <Text style={[styles.label, { color }]}>{tab.label}</Text>
           </Pressable>
         );
@@ -64,5 +74,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  badge: {
+    alignItems: 'center',
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    paddingHorizontal: 4,
+    position: 'absolute',
+    right: -10,
+    top: -8,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
   },
 });

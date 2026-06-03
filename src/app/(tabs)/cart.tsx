@@ -24,7 +24,10 @@ export default function CartScreen() {
     if (!result) return;
     setComment('');
     Alert.alert('Заявка отправлена', `Номер заявки: SH-${String(result.order_id).padStart(5, '0')}`);
-    router.push({ pathname: '/orders', params: { created: String(result.order_id) } } as never);
+    router.push({
+      pathname: '/orders',
+      params: { created: String(result.order_id), createdTotal: String(result.total) },
+    } as never);
   }
 
   return (
