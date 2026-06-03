@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { quickFilters, homeQuickFilterIds, polupromQuickFilterIds } from '../../features/catalog/quick-filters';
 import { appConfig } from '../../features/home/app-config';
+import { downloadPriceList, getPriceListDownloadErrorMessage } from '../../features/home/price-list-download';
 import { useSession } from '../../features/session/session-context';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
@@ -12,6 +13,7 @@ import { colors, spacing } from '../../lib/theme';
 const filterById = new Map(quickFilters.map((filter) => [filter.id, filter]));
 
 export default function HomeScreen() {
+  const [priceDownloading, setPriceDownloading] = useState(false);
   const [polupromOpen, setPolupromOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const { loading, user } = useSession();
@@ -31,6 +33,18 @@ export default function HomeScreen() {
       return;
     }
     router.push({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);
+  }
+
+  async function handlePriceListDownload() {
+    setPriceDownloading(true);
+    try {
+      const file = await downloadPriceList(appConfig.priceListUrl);
+      Alert.alert('Прайс загружен', `Файл ${file.fileName} скачан в приложение.`);
+    } catch (error) {
+      Alert.alert('Прайс не скачался', getPriceListDownloadErrorMessage(error));
+    } finally {
+      setPriceDownloading(false);
+    }
   }
 
   return (
@@ -64,8 +78,11 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Мультибренд · Медная труба · Расходники · Опт</Text>
       </View>
 
-      <Pressable onPress={() => void Linking.openURL(appConfig.priceListUrl)} style={styles.priceButton}>
-        <Text style={styles.priceText}>⇩  Загрузить прайс</Text>
+      <Pressable
+        disabled={priceDownloading}
+        onPress={() => void handlePriceListDownload()}
+        style={[styles.priceButton, priceDownloading && styles.disabledButton]}>
+        <Text style={styles.priceText}>{priceDownloading ? 'Скачиваем прайс...' : '⇩  Загрузить прайс'}</Text>
       </Pressable>
       <Pressable onPress={() => openCatalog()} style={styles.catalogButton}>
         <Text style={styles.catalogText}>▤  Весь каталог</Text>
@@ -213,6 +230,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     fontWeight: '800',
+  },
+  disabledButton: {
+    opacity: 0.72,
   },
   catalogButton: {
     alignItems: 'center',

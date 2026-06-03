@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,6 +11,7 @@ import {
   updateNotificationPreferences,
 } from '../../features/notifications/register-device';
 import { appConfig } from '../../features/home/app-config';
+import { downloadPriceList, getPriceListDownloadErrorMessage } from '../../features/home/price-list-download';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
@@ -25,6 +26,7 @@ export default function ProfileScreen() {
   const { user, loading, logout } = useSession();
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
+  const [priceDownloading, setPriceDownloading] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
 
   useEffect(() => {
@@ -52,6 +54,18 @@ export default function ProfileScreen() {
       if (expoToken) await removeDevice(expoToken);
     } finally {
       await logout();
+    }
+  }
+
+  async function handlePriceListDownload() {
+    setPriceDownloading(true);
+    try {
+      const file = await downloadPriceList(appConfig.priceListUrl);
+      Alert.alert('Прайс загружен', `Файл ${file.fileName} скачан в приложение.`);
+    } catch (error) {
+      Alert.alert('Прайс не скачался', getPriceListDownloadErrorMessage(error));
+    } finally {
+      setPriceDownloading(false);
     }
   }
 
@@ -106,8 +120,11 @@ export default function ProfileScreen() {
       <Pressable onPress={() => void Linking.openURL(appConfig.managerPhoneUrl)} style={styles.outline}>
         <Text style={styles.outlineText}>Позвонить менеджеру</Text>
       </Pressable>
-      <Pressable onPress={() => void Linking.openURL(appConfig.priceListUrl)} style={styles.outline}>
-        <Text style={styles.outlineText}>Открыть прайс-лист</Text>
+      <Pressable
+        disabled={priceDownloading}
+        onPress={() => void handlePriceListDownload()}
+        style={[styles.outline, priceDownloading && styles.disabledButton]}>
+        <Text style={styles.outlineText}>{priceDownloading ? 'Скачиваем прайс...' : 'Открыть прайс-лист'}</Text>
       </Pressable>
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>
@@ -169,6 +186,9 @@ const styles = StyleSheet.create({
     color: colors.accentDark,
     fontWeight: '800',
     textAlign: 'center',
+  },
+  disabledButton: {
+    opacity: 0.72,
   },
   logout: {
     padding: spacing.md,
