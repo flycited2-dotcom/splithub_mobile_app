@@ -1,6 +1,6 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-04
+Updated: 2026-06-04 17:53 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs update: `e204355 docs: record pdf export apk handoff`
+- Mobile HEAD before this handoff docs update: `4e902e6 feat: add pull to refresh for cart and orders`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -73,6 +73,24 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - Excel generation and Android Storage Access Framework saving are unchanged.
   - No site files were changed for this fix.
 - Home quick filters now hide empty sections after the catalog snapshot is loaded. If "Полупром" or "Чёрные сплиты" has no matching products, the button is removed; while loading, configured buttons remain visible to avoid flicker.
+- Home UX polish on 2026-06-04:
+  - Commit `a926490 fix: polish home and order status UX`.
+  - Home safe-area now uses an outer fixed container, so scrolling the home content no longer slides under the Android status bar.
+  - Home scroll overshoot/bounce is disabled to avoid the white/empty pull window.
+  - Closed "Полупром" modal was moved outside the home `ScrollView`, removing the extra scrollable tail after "Полупром" / "Чёрные сплиты".
+  - Quick filter color polish:
+    - `Медная труба`: translucent copper tone.
+    - `On/Off 7–9` and `On/Off 12`: translucent turquoise.
+    - `On/Off 18` and `On/Off 24–36`: translucent green-turquoise.
+    - `Расходники`: light silver.
+    - `Полупром` remains white, `Чёрные сплиты` remains dark.
+  - Auth login/register phone fields now start with `+7`.
+  - Orders now show status badges: `Новый` light blue, `Подтверждён` / `В работе` / `Отгружен` orange, `Выполнен` saturated green, `Отменён` red.
+- Pull-to-refresh on 2026-06-04:
+  - Commit `4e902e6 feat: add pull to refresh for cart and orders`.
+  - Orders screen supports swipe down to reload server order statuses.
+  - Cart screen supports swipe down to refresh the catalog data used by prices and installer-kit upsells.
+  - No site files or production storefront files were changed.
 
 ## Last Known Verification
 
@@ -116,6 +134,18 @@ Local checks on 2026-06-04 after the full-catalog flat-route / image-cache perfo
   - `npm.cmd test -- --runInBand`: passed, 21 suites / 45 tests
   - `npm.cmd run typecheck`: passed
   - `npm.cmd run lint`: passed
+
+Local checks on 2026-06-04 after home UX/status polish and pull-to-refresh:
+- RED checks before implementation:
+  - `npm.cmd test -- --runTestsByPath __tests__\home-auth-button.test.tsx __tests__\auth-phone-prefix.test.tsx __tests__\order-submit-indication.test.tsx`: failed because home had no scroll overshoot control / fixed safe-area, auth phone fields were empty, and order statuses were plain green text.
+  - `npm.cmd test -- --runTestsByPath __tests__\home-auth-button.test.tsx`: failed again until the closed `Полупром` modal was moved outside the home `ScrollView`.
+  - `npm.cmd test -- --runTestsByPath __tests__\order-submit-indication.test.tsx`: failed because orders/cart had no `RefreshControl`.
+- Green checks after implementation:
+  - `npm.cmd test -- --runTestsByPath __tests__\home-auth-button.test.tsx`: passed, 6 tests.
+  - `npm.cmd test -- --runTestsByPath __tests__\order-submit-indication.test.tsx`: passed, 7 tests.
+  - `npm.cmd test`: passed, 22 suites / 54 tests.
+  - `npm.cmd run typecheck`: passed.
+  - `npm.cmd run lint`: passed.
   - `npx.cmd expo install --check`: passed
   - `npx.cmd expo-doctor`: passed, 21/21 checks
   - `npm.cmd run doctor`: not a valid signal in this project because the script calls missing `expo-doctor`; use `npx.cmd expo-doctor` instead.
@@ -187,11 +217,22 @@ Latest EAS/APK status on 2026-06-04:
   - Installed on device `11000373CD011362` with `adb install -r -d`: `Success`
   - Package `lastUpdateTime`: `2026-06-04 10:20:43`
   - Device scroll verification is blocked until the user unlocks the phone; ADB still shows `mDreamingLockscreen=true`, `mInputRestricted=true`.
+- UX polish preview build:
+  - Build id: `0f8e97d8-50fe-46a1-b4b8-e528c155c06f`
+  - Commit: `a926490bae03bfdde437631e338eb41b4d9b3798`
+  - APK URL: `https://expo.dev/artifacts/eas/2VqoYHGbh4f2K9xdrcGaZR.apk`
+  - Status: finished.
+  - Caveat: this build does not include later pull-to-refresh commit `4e902e6`.
+- Pull-to-refresh build status:
+  - Latest local commit: `4e902e6 feat: add pull to refresh for cart and orders`.
+  - `npx.cmd eas build --platform android --profile preview --non-interactive --wait` exited with code `1073807364` and no output before enqueueing a visible build.
+  - Latest EAS list still shows `a926490` as the newest finished build, so create a fresh EAS preview build from `4e902e6` after push if a device APK is needed.
 
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
 - Full catalog performance follow-up: code fix is local and tested; needs fresh EAS APK, install on TECNO BG6, and ADB `gfxinfo` scroll profile after the user unlocks the phone.
+- Home UX/status polish and pull-to-refresh: code is committed locally and fully verified by Jest/typecheck/lint; after push, start a fresh EAS preview build from `4e902e6`, install it on TECNO BG6, then visually verify home bottom gap, order status badges, auth `+7`, and pull-to-refresh in cart/orders.
 - Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
 - Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed, pushed, and installed from build `df38324a-bf39-4476-902f-5beae80fc7e0`; PDF/Excel phone-folder verification needs the phone unlocked.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.

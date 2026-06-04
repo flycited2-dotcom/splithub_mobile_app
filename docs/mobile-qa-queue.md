@@ -1,6 +1,6 @@
 # Mobile QA Queue
 
-Updated: 2026-06-04
+Updated: 2026-06-04 17:53 +03:00
 
 Safety rules:
 - Do not change the storefront flow in `send.php` or `index.html`.
@@ -47,6 +47,24 @@ Safety rules:
   - Remaining check: actual mailbox delivery must be confirmed in email inbox; accessible server logs did not expose the notification result.
 
 ## P1
+
+- [x] **Home safe-area and quick-filter polish** `(code-fixed; final APK from pull-to-refresh commit still pending)`
+  - User disliked that the home screen content scrolled under the Android/iOS system area and left a useless empty tail after "Полупром" / "Чёрные сплиты".
+  - Code fix in `a926490`: home uses a fixed outer safe-area container, disables scroll overshoot/bounce, and keeps the closed "Полупром" modal outside the `ScrollView`.
+  - Code fix in `a926490`: quick-filter colors now match the requested palette: copper, turquoise, green-turquoise, silver, white, and dark.
+  - Local verification: `home-auth-button` tests cover safe-area/overshoot, filter colors, and modal placement; full Jest/typecheck/lint passed.
+
+- [x] **Order status colors and auth phone prefix** `(code-fixed; final APK from pull-to-refresh commit still pending)`
+  - Code fix in `a926490`: login/register phone fields start with `+7`.
+  - Code fix in `a926490`: order status badges are distinct colors: `Новый` blue, `Подтверждён` orange, `Выполнен` green, `Отменён` red.
+  - Local verification: `auth-phone-prefix` and `order-submit-indication` tests cover both changes; full Jest/typecheck/lint passed.
+
+- [x] **Swipe down to refresh cart and orders** `(code-fixed; APK build pending)`
+  - User requested pull-to-refresh for order status and cart.
+  - Code fix in `4e902e6`: orders `ScrollView` has `RefreshControl` and reloads `listOrders()` on swipe.
+  - Code fix in `4e902e6`: cart `ScrollView` has `RefreshControl` and refreshes catalog data used by prices/upsells.
+  - Local verification: `order-submit-indication` tests cover both refresh controls; full Jest/typecheck/lint passed, 22 suites / 54 tests.
+  - Remaining check: create/install fresh EAS preview APK from `4e902e6` after push.
 
 - [x] **Cart/product added indication** `(fixed and APK-verified)`
   - Symptom: after tapping add/order there was no persistent indication on product card or cart tab.
@@ -101,8 +119,8 @@ Safety rules:
 
 ## P2
 
-- [ ] **Top/bottom safe-area polish**
-  - First fix committed in `5851f96`; continue visual polish after the P0/P1 functional bugs are closed.
+- [x] **Top/bottom safe-area polish**
+  - First fix committed in `5851f96`; home follow-up fixed in `a926490`.
 
 - [ ] **Replace modal add-to-cart alerts**
   - Earlier implementation still used a blocking "Добавлено в заявку" modal on some paths.
