@@ -5,7 +5,7 @@ export function notificationTarget(data: Record<string, unknown>) {
   if (data.type === 'promotion') {
     return data.category
       ? `/catalog?filter=${encodeURIComponent(String(data.category))}&mode=flat`
-      : '/catalog';
+      : '/catalog?mode=flat';
   }
   if (data.type === 'manager_message') {
     return String(data.telegram_url ?? 'https://t.me/Byttehnikaopt');

@@ -1,4 +1,6 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { memo } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 
 import { colors, formatPrice, spacing } from '../../lib/theme';
@@ -12,12 +14,19 @@ type ProductCardProps = {
   onAdd: (product: Product) => void;
 };
 
-export function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
   return (
     <View style={styles.card}>
       <Link href={{ pathname: '/product/[id]', params: { id: product.id } }} asChild>
         <Pressable style={styles.details}>
-          <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
+          <Image
+            cachePolicy="memory-disk"
+            contentFit="contain"
+            recyclingKey={product.photo}
+            source={{ uri: `${imageBaseUrl}${product.photo}` }}
+            style={styles.image}
+            transition={0}
+          />
           <Text numberOfLines={1} style={styles.brand}>{product.brand}</Text>
           <Text numberOfLines={2} style={styles.model}>{product.model}</Text>
           {product.descShort ? <Text numberOfLines={2} style={styles.description}>{product.descShort}</Text> : null}
@@ -32,7 +41,7 @@ export function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
       </Pressable>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
@@ -51,7 +60,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: 10,
     height: 126,
-    resizeMode: 'contain',
     width: '100%',
   },
   brand: {

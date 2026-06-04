@@ -9,5 +9,5 @@ test('routes promotion to filtered catalog', () => {
 });
 
 test('routes promotion without category to the full catalog', () => {
-  expect(notificationTarget({ type: 'promotion' })).toBe('/catalog');
+  expect(notificationTarget({ type: 'promotion' })).toBe('/catalog?mode=flat');
 });

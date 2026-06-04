@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import { Image } from 'react-native';
 
 import { ProductCard } from '../src/features/catalog/ProductCard';
 import type { Product } from '../src/features/catalog/types';
@@ -7,6 +8,11 @@ import type { Product } from '../src/features/catalog/types';
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: ReactNode }) => children,
 }));
+
+jest.mock('expo-image', () => {
+  const { Image } = require('react-native');
+  return { Image };
+});
 
 const product: Product = {
   benefits: [],
@@ -33,4 +39,13 @@ test('shows cart quantity when product is already in cart', () => {
 
   expect(queryByText('В заявке · 3')).toBeTruthy();
   expect(queryByText('Заказать')).toBeNull();
+});
+
+test('uses cached image props for smoother catalog scrolling', () => {
+  const { UNSAFE_getByType } = render(<ProductCard onAdd={jest.fn()} product={product} />);
+
+  const image = UNSAFE_getByType(Image);
+
+  expect(image.props.cachePolicy).toBe('memory-disk');
+  expect(image.props.recyclingKey).toBe(product.photo);
 });

@@ -10,13 +10,17 @@ Safety rules:
 
 ## P0
 
-- [x] **Full catalog performance** `(fixed and APK-verified on TECNO BG6)`
+- [ ] **Full catalog performance** `(code-fixed again; fresh APK/device retest pending)`
   - Symptom: tapping "Весь каталог" opened a very heavy catalog and scrolling became jerky.
   - Old installed APK baseline on 2026-06-03: 111/111 janky frames, p90 113ms, p99 400ms, 3096 attached views, slow bitmap uploads 111.
-  - Fix: replaced grouped full-catalog `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
+  - First fix: replaced grouped full-catalog `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
   - Fresh APK `9325c2e`, EAS build `93cd4541-2969-42b6-a48c-473f428c758a`: 487 total frames, 32 janky frames (6.57%), p50 16ms, p90 24ms, p95 29ms, p99 73ms, 73 attached views, slow bitmap uploads 0.
   - Latest APK `2127be7`, EAS build `7d53924f-6c70-4ac3-9b61-43a820582904`: full catalog opens and scrolls on TECNO BG6; measured 58 frames, 7 janky frames (12.07%), p50 10ms, p90 25ms, p95 150ms, p99 300ms, slow bitmap uploads 0.
-  - Residual: legacy jank counter still reported 35.73%, so visual polish can continue later, but the blocking freeze/jitter regression is no longer reproduced.
+  - Reopened on 2026-06-04: user still reports severe jank when tapping the home full-catalog button.
+  - New root-cause evidence: live catalog has 275 products; the flat grid needs about 138 rows, while the grouped full-catalog path still builds about 302 rows (`5` sections, `41` brand rows, `84` series rows, `172` product rows).
+  - New code fix: home full-catalog button and promotion notifications without a category now open `/catalog` with `mode=flat`; `ProductCard` uses `expo-image` with `cachePolicy="memory-disk"` and `recyclingKey`; catalog render callbacks are memoized with `useCallback`.
+  - Local verification: the new RED tests failed on the old path, then passed after the fix; full Jest/typecheck/lint, `expo install --check`, and `npx expo-doctor` passed.
+  - Remaining check: build/install the fresh APK, unlock TECNO BG6, and capture ADB `gfxinfo` after repeated full-catalog scrolls.
 
 - [x] **Auth/session state after login or registration** `(fixed and APK-verified on TECNO BG6)`
   - Symptom: user logs in/registers, but the app can still show the logged-out UI.

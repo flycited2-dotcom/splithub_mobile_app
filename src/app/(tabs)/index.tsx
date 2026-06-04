@@ -34,7 +34,7 @@ export default function HomeScreen() {
 
   function openCatalog(filter?: string) {
     if (!filter) {
-      router.push('/catalog' as never);
+      router.push({ pathname: '/catalog', params: { mode: 'flat' } } as never);
       return;
     }
     router.push({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);

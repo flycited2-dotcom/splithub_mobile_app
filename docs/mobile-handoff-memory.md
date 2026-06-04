@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs update: `1bd0777 fix: generate price list pdf without android print`
+- Mobile HEAD before this handoff docs update: `e204355 docs: record pdf export apk handoff`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -31,6 +31,12 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - `src/features/catalog/group-products.ts`
   - `src/app/catalog.tsx`
   - test: `__tests__/catalog-rows.test.ts`
+- Full catalog performance follow-up on 2026-06-04:
+  - User reported that tapping the home full-catalog button still scrolls severely janky.
+  - Evidence from live catalog: 275 products; flat grid is about 138 rows; grouped path is about 302 rows (`5` sections, `41` brand rows, `84` series rows, `172` product rows).
+  - Code fix: home full-catalog entry and promotion notifications without category route to `/catalog` with `mode=flat`.
+  - Code fix: product cards now use `expo-image` with memory/disk cache and `recyclingKey`, and catalog render callbacks are stabilized with `useCallback`.
+  - Tests: `__tests__/home-auth-button.test.tsx`, `__tests__/notification-router.test.ts`, and `__tests__/product-card-cart-state.test.tsx`.
 - Home auth state now follows `useSession()`:
   - `src/app/(tabs)/index.tsx`
   - test: `__tests__/home-auth-button.test.tsx`
@@ -101,6 +107,19 @@ Local checks on 2026-06-04 after replacing Android `expo-print` PDF generation:
 - `npm.cmd run lint`: passed
 - `npx.cmd expo install --check`: passed
 
+Local checks on 2026-06-04 after the full-catalog flat-route / image-cache performance fix:
+- RED checks before the fix:
+  - `npm.cmd test -- --runTestsByPath __tests__\home-auth-button.test.tsx __tests__\notification-router.test.ts`: failed because home and no-category promotion still routed to `/catalog`.
+  - `npm.cmd test -- --runTestsByPath __tests__\product-card-cart-state.test.tsx`: failed because product images had no `cachePolicy`.
+- Green checks after the fix:
+  - `npm.cmd test -- --runTestsByPath __tests__\home-auth-button.test.tsx __tests__\notification-router.test.ts __tests__\product-card-cart-state.test.tsx __tests__\catalog-rows.test.ts __tests__\stack-catalog-navigation.test.tsx`: passed, 5 suites / 13 tests
+  - `npm.cmd test -- --runInBand`: passed, 21 suites / 45 tests
+  - `npm.cmd run typecheck`: passed
+  - `npm.cmd run lint`: passed
+  - `npx.cmd expo install --check`: passed
+  - `npx.cmd expo-doctor`: passed, 21/21 checks
+  - `npm.cmd run doctor`: not a valid signal in this project because the script calls missing `expo-doctor`; use `npx.cmd expo-doctor` instead.
+
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
 - APK URL: `https://expo.dev/artifacts/eas/quxQPHjAiGbConbM7rrD1t.apk`
@@ -131,6 +150,7 @@ Device UI verification:
 - Mobile API smoke after deploy: registered test user `797819050001`, created order `SH-00054` via `api/mobile.php?action=create_order`, response `ok=true`, `total=22390`; `orders` endpoint returned the same order with status `new`.
 - Latest APK `1ade685` after site deploy: tapping "Загрузить прайс" stayed inside `ru.splithub.mobile` and showed app alert "Прайс загружен" / "Файл splithub-price-2026-06-03.csv скачан в приложение."
 - Latest APK `1ade685` catalog spot check after deploy: opened "Весь каталог", performed six ADB scrolls, app stayed focused in `ru.splithub.mobile`, and UI dump contained product cards.
+- New full-catalog performance fix on 2026-06-04 has not yet been APK/device-verified because ADB shows the phone is locked (`mDreamingLockscreen=true`, `mInputRestricted=true`). Do not enter the user's PIN; ask the user to unlock, then install the fresh APK and run repeated full-catalog scroll profiling.
 
 Fresh EAS build caveat:
 - Build `acdec81f-3d7c-42d1-863b-f2e0be935428` finished on EAS but was built from old commit `b95d3b8`, so do not install it as the fixed APK.
@@ -156,6 +176,7 @@ Latest EAS/APK status on 2026-06-04:
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
+- Full catalog performance follow-up: code fix is local and tested; needs fresh EAS APK, install on TECNO BG6, and ADB `gfxinfo` scroll profile after the user unlocks the phone.
 - Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
 - Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed, pushed, and installed from build `df38324a-bf39-4476-902f-5beae80fc7e0`; PDF/Excel phone-folder verification needs the phone unlocked.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.

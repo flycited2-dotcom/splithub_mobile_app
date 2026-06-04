@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -40,12 +40,12 @@ export default function CatalogScreen() {
   const rows = useMemo(() => catalogRows(sections), [sections]);
   const filterLabel = quickFilters.find((item) => item.id === filter)?.label;
 
-  function add(product: Product) {
+  const add = useCallback((product: Product) => {
     addProduct(product);
     showAddedToCartFeedback(product.model);
-  }
+  }, [addProduct]);
 
-  function renderProduct(product: Product) {
+  const renderProduct = useCallback((product: Product) => {
     return (
       <ProductCard
         cartQty={quantityByProductId[product.id] ?? 0}
@@ -54,9 +54,9 @@ export default function CatalogScreen() {
         product={product}
       />
     );
-  }
+  }, [add, quantityByProductId]);
 
-  function renderCatalogRow(row: CatalogRow) {
+  const renderCatalogRow = useCallback((row: CatalogRow) => {
     switch (row.type) {
       case 'section':
         return (
@@ -86,7 +86,10 @@ export default function CatalogScreen() {
           </View>
         );
     }
-  }
+  }, [renderProduct]);
+
+  const renderFlatItem = useCallback(({ item }: { item: Product }) => renderProduct(item), [renderProduct]);
+  const renderGroupedItem = useCallback(({ item }: { item: CatalogRow }) => renderCatalogRow(item), [renderCatalogRow]);
 
   return (
     <View style={styles.screen}>
@@ -129,7 +132,7 @@ export default function CatalogScreen() {
           maxToRenderPerBatch={10}
           numColumns={2}
           removeClippedSubviews
-          renderItem={({ item }) => renderProduct(item)}
+          renderItem={renderFlatItem}
           windowSize={7}
         />
       ) : (
@@ -140,7 +143,7 @@ export default function CatalogScreen() {
           keyExtractor={(row) => row.id}
           maxToRenderPerBatch={10}
           removeClippedSubviews
-          renderItem={({ item }) => renderCatalogRow(item)}
+          renderItem={renderGroupedItem}
           windowSize={7}
         />
       )}
