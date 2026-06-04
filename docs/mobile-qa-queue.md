@@ -20,7 +20,8 @@ Safety rules:
   - New root-cause evidence: live catalog has 275 products; the flat grid needs about 138 rows, while the grouped full-catalog path still builds about 302 rows (`5` sections, `41` brand rows, `84` series rows, `172` product rows).
   - New code fix: home full-catalog button, cart "continue shopping", and promotion notifications without a category now open `/catalog` with `mode=flat`; `ProductCard` uses `expo-image` with `cachePolicy="memory-disk"` and `recyclingKey`; catalog render callbacks are memoized with `useCallback`.
   - Local verification: the new RED tests failed on the old path, then passed after the fix; full Jest/typecheck/lint, `expo install --check`, and `npx expo-doctor` passed.
-  - Remaining check: build/install the fresh APK, unlock TECNO BG6, and capture ADB `gfxinfo` after repeated full-catalog scrolls.
+  - Fresh APK for retest: commit `b2f35a2`, EAS build `863be1cc-68e6-4907-abf7-f7cbdea2e949`, local file `artifacts\SplitHub-preview-b2f35a2.apk`, installed on TECNO BG6 with `adb install -r -d`: `Success`.
+  - Remaining check: unlock TECNO BG6 and capture ADB `gfxinfo` after repeated full-catalog scrolls on the installed fresh APK.
 
 - [x] **Auth/session state after login or registration** `(fixed and APK-verified on TECNO BG6)`
   - Symptom: user logs in/registers, but the app can still show the logged-out UI.

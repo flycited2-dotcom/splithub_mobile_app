@@ -177,6 +177,16 @@ Latest EAS/APK status on 2026-06-04:
   - SHA256: `8CD167437397920DF0DB6E0C2C66841D677BC30A1B366E7E0159402C2AB18FFA`
   - Installed on device `11000373CD011362` with `adb install -r -d`: `Success`
 - Device verification is paused because the phone relocked and shows `Введите пароль`; do not enter the user's PIN. Ask the user to unlock, then launch `ru.splithub.mobile` and verify PDF saving.
+- Correct preview build for the full-catalog performance follow-up:
+  - Build id: `863be1cc-68e6-4907-abf7-f7cbdea2e949`
+  - Commit: `b2f35a2d7e16f0da70d43947f6c9c85194319cc3`
+  - APK URL: `https://expo.dev/artifacts/eas/hzoUNGePVn4SLhWK2VQsur.apk`
+  - Local APK: `artifacts\SplitHub-preview-b2f35a2.apk`
+  - Size: `106416157`
+  - SHA256: `17A990323071A70923707BD589D89AA9BB3F1394B7EE00DEE0BB1A849F9F859A`
+  - Installed on device `11000373CD011362` with `adb install -r -d`: `Success`
+  - Package `lastUpdateTime`: `2026-06-04 10:20:43`
+  - Device scroll verification is blocked until the user unlocks the phone; ADB still shows `mDreamingLockscreen=true`, `mInputRestricted=true`.
 
 ## Open Work
 
