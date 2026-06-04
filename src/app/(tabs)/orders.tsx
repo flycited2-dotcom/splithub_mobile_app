@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,6 +57,7 @@ export default function OrdersScreen() {
   const { user } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const createdOrderId = typeof params.created === 'string' ? Number(params.created) : 0;
   const createdOrderNumber = Number.isFinite(createdOrderId) && createdOrderId > 0
     ? `SH-${String(createdOrderId).padStart(5, '0')}`
@@ -78,13 +79,16 @@ export default function OrdersScreen() {
     return [createdOrder, ...orders];
   }, [createdOrderId, createdOrderTotal, orders]);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (showSpinner = false) => {
     if (!user) return;
+    if (showSpinner) setRefreshing(true);
     setError('');
     try {
       setOrders((await listOrders()).orders);
     } catch {
       setError('Не удалось загрузить заказы');
+    } finally {
+      if (showSpinner) setRefreshing(false);
     }
   }, [user]);
 
@@ -104,7 +108,16 @@ export default function OrdersScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.screen, tabScreenPadding(insets)]}>
+    <ScrollView
+      contentContainerStyle={[styles.screen, tabScreenPadding(insets)]}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={() => refresh(true)}
+          refreshing={refreshing}
+          tintColor={colors.accent}
+        />
+      }>
       <Text style={styles.title}>Мои заказы</Text>
       {createdOrderNumber ? (
         <View style={styles.sentBanner}>
@@ -126,7 +139,7 @@ export default function OrdersScreen() {
           </View>
         </Pressable>
       ))}
-      <Pressable onPress={() => void refresh()} style={styles.refresh}>
+      <Pressable onPress={() => void refresh(true)} style={styles.refresh}>
         <Text style={styles.refreshText}>Обновить</Text>
       </Pressable>
     </ScrollView>

@@ -1,7 +1,7 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 import CartScreen from '../src/app/(tabs)/cart';
 import OrdersScreen from '../src/app/(tabs)/orders';
@@ -53,6 +53,7 @@ const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 beforeEach(() => {
   mockedRouterPush.mockReset();
   mockedUseLocalSearchParams.mockReset();
+  mockedListOrders.mockReset();
   mockCheckout.mockReset();
 
   mockedUseCatalog.mockReturnValue({
@@ -199,4 +200,71 @@ test('shows order statuses as distinct colored badges', async () => {
       color: '#B91C1C',
     });
   });
+});
+
+test('pulls down to refresh order statuses', async () => {
+  mockedUseLocalSearchParams.mockReturnValue({});
+  mockedListOrders
+    .mockResolvedValueOnce({
+      orders: [
+        { comment: '', created_at: '2026-06-03T09:34:00Z', id: 47, status: 'new', total: 37540 },
+      ],
+    })
+    .mockResolvedValueOnce({
+      orders: [
+        { comment: '', created_at: '2026-06-03T09:34:00Z', id: 47, status: 'completed', total: 37540 },
+      ],
+    });
+
+  const { UNSAFE_getByType, getByText } = render(<OrdersScreen />);
+
+  await waitFor(() => {
+    expect(getByText('Новый')).toBeTruthy();
+  });
+
+  const scrollView = UNSAFE_getByType(ScrollView);
+  expect(scrollView.props.refreshControl.type).toBe(RefreshControl);
+
+  await act(async () => {
+    await scrollView.props.refreshControl.props.onRefresh();
+  });
+
+  await waitFor(() => {
+    expect(getByText('Выполнен')).toBeTruthy();
+  });
+  expect(mockedListOrders).toHaveBeenCalledTimes(2);
+});
+
+test('pulls down in the cart to refresh the catalog used by prices and upsells', async () => {
+  const refreshCatalog = jest.fn().mockResolvedValue(undefined);
+  mockedUseCatalog.mockReturnValue({
+    error: null,
+    loading: false,
+    offline: false,
+    refresh: refreshCatalog,
+    snapshot: { products: [], updated_at: '2026-06-03T00:00:00Z', version: 'test' },
+  });
+  mockedUseCart.mockReturnValue({
+    addProduct: jest.fn(),
+    checkout: mockCheckout,
+    checkoutError: null,
+    checkingOut: false,
+    items: [],
+    itemsCount: 0,
+    quantityByProductId: {},
+    replaceItems: jest.fn(),
+    setQty: jest.fn(),
+    total: 0,
+  });
+
+  const { UNSAFE_getByType } = render(<CartScreen />);
+  const scrollView = UNSAFE_getByType(ScrollView);
+
+  expect(scrollView.props.refreshControl.type).toBe(RefreshControl);
+
+  await act(async () => {
+    await scrollView.props.refreshControl.props.onRefresh();
+  });
+
+  expect(refreshCatalog).toHaveBeenCalledTimes(1);
 });

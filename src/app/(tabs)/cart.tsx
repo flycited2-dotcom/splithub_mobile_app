@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +11,7 @@ import { colors, formatPrice, spacing } from '../../lib/theme';
 
 export default function CartScreen() {
   const insets = useSafeAreaInsets();
-  const { snapshot } = useCatalog();
+  const { loading: catalogLoading, refresh: refreshCatalog, snapshot } = useCatalog();
   const { items, itemsCount, total, addProduct, setQty, checkout, checkoutError, checkingOut } = useCart();
   const [comment, setComment] = useState('');
   const installerKit = useMemo(
@@ -31,7 +31,16 @@ export default function CartScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.content, tabScreenPadding(insets)]}>
+    <ScrollView
+      contentContainerStyle={[styles.content, tabScreenPadding(insets)]}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={refreshCatalog}
+          refreshing={catalogLoading}
+          tintColor={colors.accent}
+        />
+      }>
       <Text style={styles.title}>Корзина</Text>
       {!items.length ? <Text style={styles.empty}>Корзина пока пуста</Text> : null}
 
