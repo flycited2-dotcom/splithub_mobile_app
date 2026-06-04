@@ -1,5 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import * as Print from 'expo-print';
+import { Asset } from 'expo-asset';
+import { Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
+import fontkit from '@pdf-lib/fontkit';
+import { PDFDocument, PDFFont, PDFPage, rgb } from 'pdf-lib';
 
 import type { Product } from '../catalog/types';
 
@@ -26,14 +29,14 @@ export type PriceListFileSystem = {
   StorageAccessFramework?: StorageAccess;
 };
 
-type PriceListPrint = {
-  printToFileAsync: typeof Print.printToFileAsync;
+type PriceListPdfRenderer = {
+  renderBase64: (products: Product[], today: string) => Promise<string>;
 };
 
 type DownloadOptions = {
   fileSystem?: PriceListFileSystem;
   now?: () => Date;
-  print?: PriceListPrint;
+  pdfRenderer?: PriceListPdfRenderer;
 };
 
 type GeneratedPriceListFile = {
@@ -67,7 +70,7 @@ export async function downloadPriceList(
   const fileSystem = options.fileSystem ?? FileSystem;
   const today = (options.now?.() ?? new Date()).toISOString().slice(0, 10);
   const generated = format === 'pdf'
-    ? await createPdfPriceList(products, today, options.print ?? Print)
+    ? await createPdfPriceList(products, today, fileSystem, options.pdfRenderer ?? pdfRenderer)
     : await createExcelPriceList(products, today, fileSystem);
 
   return saveToPhoneFolder(generated, fileSystem);
@@ -100,17 +103,26 @@ async function createExcelPriceList(
 async function createPdfPriceList(
   products: Product[],
   today: string,
-  print: PriceListPrint,
+  fileSystem: PriceListFileSystem,
+  renderer: PriceListPdfRenderer,
 ): Promise<GeneratedPriceListFile> {
+  const cacheDirectory = fileSystem.cacheDirectory;
+  if (!cacheDirectory) {
+    throw new Error('Не удалось подготовить прайс: хранилище приложения недоступно');
+  }
+
   const fileName = buildFileName('pdf', today);
-  const result = await print.printToFileAsync({
-    html: buildPriceListHtml(products, today),
-  });
+  const directoryUri = `${cacheDirectory}${priceListDirName}/`;
+  const fileUri = `${directoryUri}${fileName}`;
+  const pdfBase64 = await renderer.renderBase64(products, today);
+
+  await fileSystem.makeDirectoryAsync(directoryUri, { intermediates: true });
+  await fileSystem.writeAsStringAsync(fileUri, pdfBase64, { encoding: 'base64' });
 
   return {
     fileName,
     mimeType: formatMeta.pdf.mimeType,
-    uri: result.uri,
+    uri: fileUri,
   };
 }
 
@@ -203,6 +215,149 @@ function escapeHtml(value: string) {
 
 function formatPrice(price: number) {
   return `${new Intl.NumberFormat('ru-RU').format(price)} ₽`;
+}
+
+const pdfRenderer: PriceListPdfRenderer = {
+  renderBase64: renderPdfPriceListBase64,
+};
+
+async function renderPdfPriceListBase64(products: Product[], today: string) {
+  const [regularFontBase64, boldFontBase64] = await Promise.all([
+    readAssetAsBase64(Roboto_400Regular),
+    readAssetAsBase64(Roboto_700Bold),
+  ]);
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+  pdf.setTitle('Прайс-лист СплитХаб');
+  pdf.setCreator('SplitHub mobile app');
+
+  const regular = await pdf.embedFont(regularFontBase64, { subset: true });
+  const bold = await pdf.embedFont(boldFontBase64, { subset: true });
+  const layout = {
+    bottom: 32,
+    columns: [32, 56, 128, 306, 366, 446, 514],
+    height: 842,
+    rowHeight: 18,
+    width: 595,
+  };
+  let page = addPdfPage(pdf, today, products.length, bold, regular, layout.width, layout.height);
+  let y = layout.height - 132;
+
+  drawTableHeader(page, y, bold, layout.columns);
+  y -= layout.rowHeight;
+
+  products.forEach((product, index) => {
+    if (y < layout.bottom + layout.rowHeight) {
+      page = addPdfPage(pdf, today, products.length, bold, regular, layout.width, layout.height);
+      y = layout.height - 104;
+      drawTableHeader(page, y, bold, layout.columns);
+      y -= layout.rowHeight;
+    }
+
+    drawProductRow(page, product, index + 1, y, regular, layout.columns);
+    y -= layout.rowHeight;
+  });
+
+  return pdf.saveAsBase64();
+}
+
+async function readAssetAsBase64(moduleId: number) {
+  const asset = Asset.fromModule(moduleId);
+  await asset.downloadAsync();
+  const uri = asset.localUri ?? asset.uri;
+  return FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+}
+
+function addPdfPage(
+  pdf: PDFDocument,
+  today: string,
+  productCount: number,
+  bold: PDFFont,
+  regular: PDFFont,
+  width: number,
+  height: number,
+) {
+  const page = pdf.addPage([width, height]);
+  page.drawText('Прайс-лист СплитХаб', {
+    color: rgb(0.06, 0.09, 0.16),
+    font: bold,
+    size: 22,
+    x: 32,
+    y: height - 48,
+  });
+  page.drawText(`Дата: ${today} · Товаров: ${productCount}`, {
+    color: rgb(0.39, 0.45, 0.55),
+    font: regular,
+    size: 10,
+    x: 32,
+    y: height - 68,
+  });
+  page.drawText('Оптовый прайс для монтажников и B2B', {
+    color: rgb(0.71, 0.33, 0.03),
+    font: bold,
+    size: 11,
+    x: 32,
+    y: height - 88,
+  });
+  return page;
+}
+
+function drawTableHeader(page: PDFPage, y: number, font: PDFFont, columns: number[]) {
+  page.drawRectangle({
+    color: rgb(0.94, 0.96, 0.98),
+    height: 18,
+    width: 532,
+    x: 32,
+    y: y - 4,
+  });
+  drawCell(page, '#', columns[0], y, font, 8, 18);
+  drawCell(page, 'Бренд', columns[1], y, font, 8, 66);
+  drawCell(page, 'Модель', columns[2], y, font, 8, 170);
+  drawCell(page, 'Группа', columns[3], y, font, 8, 52);
+  drawCell(page, 'Наличие', columns[4], y, font, 8, 72);
+  drawCell(page, 'Цена', columns[5], y, font, 8, 78);
+}
+
+function drawProductRow(page: PDFPage, product: Product, number: number, y: number, font: PDFFont, columns: number[]) {
+  drawCell(page, String(number), columns[0], y, font, 8, 18);
+  drawCell(page, product.brand, columns[1], y, font, 8, 66);
+  drawCell(page, product.model || product.sku, columns[2], y, font, 8, 170);
+  drawCell(page, product.group, columns[3], y, font, 8, 52);
+  drawCell(page, product.stockLabel || product.stock, columns[4], y, font, 8, 72);
+  drawCell(page, formatPrice(product.price), columns[5], y, font, 8, 78);
+  page.drawLine({
+    color: rgb(0.88, 0.9, 0.94),
+    end: { x: columns[6], y: y - 6 },
+    start: { x: 32, y: y - 6 },
+    thickness: 0.4,
+  });
+}
+
+function drawCell(page: PDFPage, value: string, x: number, y: number, font: PDFFont, size: number, width: number) {
+  page.drawText(truncatePdfText(value, font, size, width), {
+    color: rgb(0.06, 0.09, 0.16),
+    font,
+    size,
+    x,
+    y,
+  });
+}
+
+function truncatePdfText(value: string, font: PDFFont, size: number, maxWidth: number) {
+  const clean = normalizePdfText(value);
+  if (font.widthOfTextAtSize(clean, size) <= maxWidth) {
+    return clean;
+  }
+
+  let result = clean;
+  while (result.length > 1 && font.widthOfTextAtSize(`${result}…`, size) > maxWidth) {
+    result = result.slice(0, -1);
+  }
+  return `${result}…`;
+}
+
+function normalizePdfText(value: string) {
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 export function getPriceListDownloadErrorMessage(error: unknown): string {

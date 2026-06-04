@@ -153,7 +153,7 @@ test('creates a PDF price list and writes it to the selected phone folder', asyn
   const fileSystem: PriceListFileSystem = {
     cacheDirectory: 'file:///cache/',
     makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
-    readAsStringAsync: jest.fn().mockResolvedValue('base64-pdf'),
+    readAsStringAsync: jest.fn().mockResolvedValue('base64-pdf-from-cache'),
     writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
     StorageAccessFramework: {
       createFileAsync: jest.fn().mockResolvedValue('content://downloads/splithub-price-2026-06-03.pdf'),
@@ -164,23 +164,34 @@ test('creates a PDF price list and writes it to the selected phone folder', asyn
       writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
     },
   };
-  const print = {
-    printToFileAsync: jest.fn().mockResolvedValue({ uri: 'file:///cache/print.pdf' }),
+  const pdfRenderer = {
+    renderBase64: jest.fn().mockResolvedValue('base64-pdf'),
   };
 
   await expect(actualPriceListDownload.downloadPriceList('pdf', priceProducts, {
     fileSystem,
     now: () => new Date('2026-06-03T12:00:00Z'),
-    print,
+    pdfRenderer,
   })).resolves.toEqual({
     fileName: 'splithub-price-2026-06-03.pdf',
     savedToPhone: true,
     uri: 'content://downloads/splithub-price-2026-06-03.pdf',
   });
 
-  expect(print.printToFileAsync).toHaveBeenCalledWith({
-    html: expect.stringContaining('MDSAG-07HRDN8'),
-  });
+  expect(pdfRenderer.renderBase64).toHaveBeenCalledWith(priceProducts, '2026-06-03');
+  expect(fileSystem.makeDirectoryAsync).toHaveBeenCalledWith(
+    'file:///cache/splithub-prices/',
+    { intermediates: true },
+  );
+  expect(fileSystem.writeAsStringAsync).toHaveBeenCalledWith(
+    'file:///cache/splithub-prices/splithub-price-2026-06-03.pdf',
+    'base64-pdf',
+    { encoding: 'base64' },
+  );
+  expect(fileSystem.readAsStringAsync).toHaveBeenCalledWith(
+    'file:///cache/splithub-prices/splithub-price-2026-06-03.pdf',
+    { encoding: 'base64' },
+  );
   expect(fileSystem.StorageAccessFramework!.createFileAsync).toHaveBeenCalledWith(
     'content://downloads',
     'splithub-price-2026-06-03.pdf',
