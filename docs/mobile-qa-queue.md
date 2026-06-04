@@ -18,7 +18,7 @@ Safety rules:
   - Latest APK `2127be7`, EAS build `7d53924f-6c70-4ac3-9b61-43a820582904`: full catalog opens and scrolls on TECNO BG6; measured 58 frames, 7 janky frames (12.07%), p50 10ms, p90 25ms, p95 150ms, p99 300ms, slow bitmap uploads 0.
   - Reopened on 2026-06-04: user still reports severe jank when tapping the home full-catalog button.
   - New root-cause evidence: live catalog has 275 products; the flat grid needs about 138 rows, while the grouped full-catalog path still builds about 302 rows (`5` sections, `41` brand rows, `84` series rows, `172` product rows).
-  - New code fix: home full-catalog button and promotion notifications without a category now open `/catalog` with `mode=flat`; `ProductCard` uses `expo-image` with `cachePolicy="memory-disk"` and `recyclingKey`; catalog render callbacks are memoized with `useCallback`.
+  - New code fix: home full-catalog button, cart "continue shopping", and promotion notifications without a category now open `/catalog` with `mode=flat`; `ProductCard` uses `expo-image` with `cachePolicy="memory-disk"` and `recyclingKey`; catalog render callbacks are memoized with `useCallback`.
   - Local verification: the new RED tests failed on the old path, then passed after the fix; full Jest/typecheck/lint, `expo install --check`, and `npx expo-doctor` passed.
   - Remaining check: build/install the fresh APK, unlock TECNO BG6, and capture ADB `gfxinfo` after repeated full-catalog scrolls.
 

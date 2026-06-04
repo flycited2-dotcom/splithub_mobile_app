@@ -99,6 +99,30 @@ test('routes to orders with the created order id and total after checkout', asyn
   });
 });
 
+test('continues shopping in flat catalog mode', () => {
+  mockedUseCart.mockReturnValue({
+    addProduct: jest.fn(),
+    checkout: mockCheckout,
+    checkoutError: null,
+    checkingOut: false,
+    items: [{ id: 'pipe-38', name: 'Медная труба 3/8 · бухта 50 м', price: 14550, qty: 1 }],
+    itemsCount: 1,
+    quantityByProductId: {},
+    replaceItems: jest.fn(),
+    setQty: jest.fn(),
+    total: 14550,
+  });
+
+  const { getByText } = render(<CartScreen />);
+
+  fireEvent.press(getByText('Продолжить покупки'));
+
+  expect(mockedRouterPush).toHaveBeenCalledWith({
+    pathname: '/catalog',
+    params: { mode: 'flat' },
+  });
+});
+
 test('shows a sent-order banner on the orders screen', async () => {
   mockedUseLocalSearchParams.mockReturnValue({ created: '47' });
   mockedListOrders.mockResolvedValue({

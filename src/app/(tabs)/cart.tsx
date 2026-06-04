@@ -99,7 +99,9 @@ export default function CartScreen() {
             <Link href="/auth/login" style={styles.loginLink}>Войти в аккаунт</Link>
           ) : null}
           <View style={styles.bottomActions}>
-            <Pressable onPress={() => router.push('/catalog')} style={styles.continueButton}>
+            <Pressable
+              onPress={() => router.push({ pathname: '/catalog', params: { mode: 'flat' } } as never)}
+              style={styles.continueButton}>
               <Text style={styles.continueText}>Продолжить покупки</Text>
             </Pressable>
             <Pressable

@@ -34,9 +34,9 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 - Full catalog performance follow-up on 2026-06-04:
   - User reported that tapping the home full-catalog button still scrolls severely janky.
   - Evidence from live catalog: 275 products; flat grid is about 138 rows; grouped path is about 302 rows (`5` sections, `41` brand rows, `84` series rows, `172` product rows).
-  - Code fix: home full-catalog entry and promotion notifications without category route to `/catalog` with `mode=flat`.
+  - Code fix: home full-catalog entry, cart "continue shopping", and promotion notifications without category route to `/catalog` with `mode=flat`.
   - Code fix: product cards now use `expo-image` with memory/disk cache and `recyclingKey`, and catalog render callbacks are stabilized with `useCallback`.
-  - Tests: `__tests__/home-auth-button.test.tsx`, `__tests__/notification-router.test.ts`, and `__tests__/product-card-cart-state.test.tsx`.
+  - Tests: `__tests__/home-auth-button.test.tsx`, `__tests__/order-submit-indication.test.tsx`, `__tests__/notification-router.test.ts`, and `__tests__/product-card-cart-state.test.tsx`.
 - Home auth state now follows `useSession()`:
   - `src/app/(tabs)/index.tsx`
   - test: `__tests__/home-auth-button.test.tsx`
@@ -119,6 +119,11 @@ Local checks on 2026-06-04 after the full-catalog flat-route / image-cache perfo
   - `npx.cmd expo install --check`: passed
   - `npx.cmd expo-doctor`: passed, 21/21 checks
   - `npm.cmd run doctor`: not a valid signal in this project because the script calls missing `expo-doctor`; use `npx.cmd expo-doctor` instead.
+- Additional RED/GREEN on 2026-06-04:
+  - `npm.cmd test -- --runTestsByPath __tests__\order-submit-indication.test.tsx`: failed before the cart "continue shopping" route fix because it pushed `/catalog`.
+  - `npm.cmd test -- --runTestsByPath __tests__\order-submit-indication.test.tsx __tests__\home-auth-button.test.tsx __tests__\notification-router.test.ts __tests__\product-card-cart-state.test.tsx`: passed after the cart route fix, 4 suites / 13 tests.
+  - `npm.cmd run typecheck`: passed
+  - `npm.cmd run lint`: passed
 
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
