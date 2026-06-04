@@ -8,7 +8,7 @@ import { colors, spacing } from '../../lib/theme';
 
 export default function LoginScreen() {
   const { login } = useSession();
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+7');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);

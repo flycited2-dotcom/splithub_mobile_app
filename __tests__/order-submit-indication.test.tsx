@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
 import CartScreen from '../src/app/(tabs)/cart';
 import OrdersScreen from '../src/app/(tabs)/orders';
@@ -163,5 +164,39 @@ test('shows the created order immediately when the first orders refresh is stale
   await waitFor(() => {
     expect(queryByText('SH-00051')).toBeTruthy();
     expect(queryByText('81 870 ₽')).toBeTruthy();
+  });
+});
+
+test('shows order statuses as distinct colored badges', async () => {
+  mockedUseLocalSearchParams.mockReturnValue({});
+  mockedListOrders.mockResolvedValue({
+    orders: [
+      { comment: '', created_at: '2026-06-03T09:34:00Z', id: 1, status: 'new', total: 1000 },
+      { comment: '', created_at: '2026-06-03T09:35:00Z', id: 2, status: 'confirmed', total: 2000 },
+      { comment: '', created_at: '2026-06-03T09:36:00Z', id: 3, status: 'completed', total: 3000 },
+      { comment: '', created_at: '2026-06-03T09:37:00Z', id: 4, status: 'cancelled', total: 4000 },
+    ],
+  });
+
+  const { getByText } = render(<OrdersScreen />);
+
+  await waitFor(() => {
+    expect(StyleSheet.flatten(getByText('Новый').props.style)).toMatchObject({
+      backgroundColor: '#DBEAFE',
+      color: '#1D4ED8',
+    });
+    expect(StyleSheet.flatten(getByText('Подтверждён').props.style)).toMatchObject({
+      backgroundColor: '#FFEDD5',
+      color: '#C2410C',
+    });
+    expect(StyleSheet.flatten(getByText('Выполнен').props.style)).toMatchObject({
+      backgroundColor: '#DCFCE7',
+      color: '#15803D',
+      fontWeight: '900',
+    });
+    expect(StyleSheet.flatten(getByText('Отменён').props.style)).toMatchObject({
+      backgroundColor: '#FEE2E2',
+      color: '#B91C1C',
+    });
   });
 });

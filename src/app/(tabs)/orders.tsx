@@ -18,6 +18,39 @@ const statusLabels: Record<OrderStatus, string> = {
   cancelled: 'Отменён',
 };
 
+const statusColors: Record<OrderStatus, { backgroundColor: string; borderColor: string; color: string }> = {
+  new: {
+    backgroundColor: '#DBEAFE',
+    borderColor: '#93C5FD',
+    color: '#1D4ED8',
+  },
+  confirmed: {
+    backgroundColor: '#FFEDD5',
+    borderColor: '#FDBA74',
+    color: '#C2410C',
+  },
+  in_progress: {
+    backgroundColor: '#FFEDD5',
+    borderColor: '#FDBA74',
+    color: '#C2410C',
+  },
+  shipped: {
+    backgroundColor: '#FFEDD5',
+    borderColor: '#FDBA74',
+    color: '#C2410C',
+  },
+  completed: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#22C55E',
+    color: '#15803D',
+  },
+  cancelled: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+    color: '#B91C1C',
+  },
+};
+
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ created?: string; createdTotal?: string }>();
@@ -89,7 +122,7 @@ export default function OrdersScreen() {
           </View>
           <View style={styles.right}>
             <Text style={styles.price}>{formatPrice(order.total)}</Text>
-            <Text style={styles.status}>{statusLabels[order.status]}</Text>
+            <Text style={[styles.status, statusColors[order.status]]}>{statusLabels[order.status]}</Text>
           </View>
         </Pressable>
       ))}
@@ -158,8 +191,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   status: {
-    color: colors.success,
+    borderRadius: 999,
+    borderWidth: 1,
     fontSize: 12,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   refresh: {
     alignSelf: 'flex-start',

@@ -9,7 +9,7 @@ import { colors, spacing } from '../../lib/theme';
 export default function RegisterScreen() {
   const { register } = useSession();
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+7');
   const [password, setPassword] = useState('');
   const [telegram, setTelegram] = useState('');
   const [error, setError] = useState('');

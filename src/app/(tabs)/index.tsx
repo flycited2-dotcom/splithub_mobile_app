@@ -12,7 +12,6 @@ import {
   type PriceListFormat,
 } from '../../features/home/price-list-download';
 import { useSession } from '../../features/session/session-context';
-import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
 export default function HomeScreen() {
@@ -61,62 +60,74 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.content, tabScreenPadding(insets)]}>
-      <View style={styles.topRow}>
-        <Text style={styles.smallLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
-        <Pressable disabled={loading} onPress={() => router.push(authTarget as never)} style={styles.loginButton}>
-          <Text style={styles.loginText}>{loading ? '...' : user ? 'Профиль' : 'Войти'}</Text>
-        </Pressable>
-        <Pressable onPress={() => router.push('/cart')} style={styles.orderButton}>
-          <Text style={styles.orderText}>Заявка</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.contactGrid}>
-        {appConfig.contacts.map((contact) => (
-          <Pressable
-            key={contact.url}
-            onPress={() => void Linking.openURL(contact.url)}
-            style={[styles.contact, contact.kind === 'telegram' && styles.telegramContact]}>
-            <Text style={[styles.contactText, contact.kind === 'telegram' && styles.telegramText]}>
-              {contact.kind === 'phone' ? '☎ ' : '➤ '}{contact.label}
-            </Text>
+    <View style={[styles.screen, { paddingTop: insets.top + spacing.lg }]}>
+      <ScrollView
+        alwaysBounceVertical={false}
+        bounces={false}
+        overScrollMode="never"
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <View style={styles.topRow}>
+          <Text style={styles.smallLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
+          <Pressable disabled={loading} onPress={() => router.push(authTarget as never)} style={styles.loginButton}>
+            <Text style={styles.loginText}>{loading ? '...' : user ? 'Профиль' : 'Войти'}</Text>
           </Pressable>
-        ))}
-      </View>
-
-      <View style={styles.hero}>
-        <Text style={styles.eyebrow}>ОПТОВЫЙ ПРАЙС ДЛЯ МОНТАЖНИКОВ И B2B</Text>
-        <Text style={styles.heroLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
-        <Text style={styles.subtitle}>Мультибренд · Медная труба · Расходники · Опт</Text>
-      </View>
-
-      <Pressable
-        disabled={priceDownloading}
-        onPress={showPriceListFormatPicker}
-        style={[styles.priceButton, priceDownloading && styles.disabledButton]}>
-        <Text style={styles.priceText}>{priceDownloading ? 'Готовим прайс...' : '⇩  Загрузить прайс'}</Text>
-      </Pressable>
-      <Pressable onPress={() => openCatalog()} style={styles.catalogButton}>
-        <Text style={styles.catalogText}>▤  Весь каталог</Text>
-      </Pressable>
-
-      <View style={styles.filterGrid}>
-        {homeFilters.map((filter) => (
-          <Pressable
-            key={filter.id}
-            onPress={() => filter.id === 'poluprom' ? setPolupromOpen(true) : openCatalog(filter.id)}
-            style={[
-              styles.filterButton,
-              filter.id.startsWith('inv') && styles.inverterFilter,
-              filter.id === 'multi' && styles.blackFilter,
-            ]}>
-            <Text style={[styles.filterText, filter.id === 'multi' && styles.blackFilterText]}>
-              {filter.label}
-            </Text>
+          <Pressable onPress={() => router.push('/cart')} style={styles.orderButton}>
+            <Text style={styles.orderText}>Заявка</Text>
           </Pressable>
-        ))}
-      </View>
+        </View>
+
+        <View style={styles.contactGrid}>
+          {appConfig.contacts.map((contact) => (
+            <Pressable
+              key={contact.url}
+              onPress={() => void Linking.openURL(contact.url)}
+              style={[styles.contact, contact.kind === 'telegram' && styles.telegramContact]}>
+              <Text style={[styles.contactText, contact.kind === 'telegram' && styles.telegramText]}>
+                {contact.kind === 'phone' ? '☎ ' : '➤ '}{contact.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>ОПТОВЫЙ ПРАЙС ДЛЯ МОНТАЖНИКОВ И B2B</Text>
+          <Text style={styles.heroLogo}>Сплит<Text style={styles.logoAccent}>Хаб</Text></Text>
+          <Text style={styles.subtitle}>Мультибренд · Медная труба · Расходники · Опт</Text>
+        </View>
+
+        <Pressable
+          disabled={priceDownloading}
+          onPress={showPriceListFormatPicker}
+          style={[styles.priceButton, priceDownloading && styles.disabledButton]}>
+          <Text style={styles.priceText}>{priceDownloading ? 'Готовим прайс...' : '⇩  Загрузить прайс'}</Text>
+        </Pressable>
+        <Pressable onPress={() => openCatalog()} style={styles.catalogButton}>
+          <Text style={styles.catalogText}>▤  Весь каталог</Text>
+        </Pressable>
+
+        <View style={styles.filterGrid}>
+          {homeFilters.map((filter) => (
+            <Pressable
+              key={filter.id}
+              onPress={() => filter.id === 'poluprom' ? setPolupromOpen(true) : openCatalog(filter.id)}
+              style={[
+                styles.filterButton,
+                filter.id.startsWith('inv') && styles.inverterFilter,
+                (filter.id === 'on79' || filter.id === 'on12') && styles.onSmallFilter,
+                (filter.id === 'on18' || filter.id === 'on2436') && styles.onLargeFilter,
+                filter.id === 'truba' && styles.copperFilter,
+                filter.id === 'rashod' && styles.silverFilter,
+                filter.id === 'multi' && styles.blackFilter,
+              ]}>
+              <Text style={[styles.filterText, filter.id === 'multi' && styles.blackFilterText]}>
+                {filter.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+      </ScrollView>
 
       <Modal animationType="fade" transparent visible={polupromOpen}>
         <View style={styles.modalBackdrop}>
@@ -139,16 +150,23 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#F4F6FB',
+    flex: 1,
+  },
+  scroll: {
+    backgroundColor: '#F4F6FB',
+    flex: 1,
+  },
   content: {
     backgroundColor: '#F4F6FB',
     gap: spacing.md,
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
   },
   topRow: {
     alignItems: 'center',
@@ -277,6 +295,22 @@ const styles = StyleSheet.create({
   inverterFilter: {
     backgroundColor: '#FCECF7',
     borderColor: '#F4B7DB',
+  },
+  onSmallFilter: {
+    backgroundColor: 'rgba(45, 212, 191, 0.14)',
+    borderColor: 'rgba(20, 184, 166, 0.42)',
+  },
+  onLargeFilter: {
+    backgroundColor: 'rgba(16, 185, 129, 0.14)',
+    borderColor: 'rgba(5, 150, 105, 0.42)',
+  },
+  copperFilter: {
+    backgroundColor: 'rgba(184, 115, 51, 0.16)',
+    borderColor: 'rgba(184, 115, 51, 0.42)',
+  },
+  silverFilter: {
+    backgroundColor: 'rgba(226, 232, 240, 0.72)',
+    borderColor: '#CBD5E1',
   },
   blackFilter: {
     backgroundColor: '#555967',
