@@ -1,6 +1,6 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-03
+Updated: 2026-06-04
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs update: `f2c3487 feat: save price list as pdf or excel`
+- Mobile HEAD before this handoff docs update: `1bd0777 fix: generate price list pdf without android print`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -61,6 +61,11 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - both formats are saved through Android Storage Access Framework into a user-selected phone folder, not only the app cache
   - the old "Файл скачан в приложение" message was replaced with "сохранён в выбранную папку телефона"
   - `expo-print` was added, so a fresh APK is required before device testing this feature
+- Price-list PDF export was fixed again on 2026-06-04:
+  - Android `expo-print` hung on TECNO BG6 after choosing `PDF`; the app stayed on `Готовим прайс...` and no PDF file appeared.
+  - Commit `1bd0777` replaces `expo-print` with JS-side `pdf-lib` generation and embedded Roboto fonts for Cyrillic.
+  - Excel generation and Android Storage Access Framework saving are unchanged.
+  - No site files were changed for this fix.
 - Home quick filters now hide empty sections after the catalog snapshot is loaded. If "Полупром" or "Чёрные сплиты" has no matching products, the button is removed; while loading, configured buttons remain visible to avoid flicker.
 
 ## Last Known Verification
@@ -88,6 +93,13 @@ Local checks on 2026-06-03 after the PDF/Excel phone-save update:
 - `npm.cmd run typecheck`: passed
 - `npm.cmd run lint`: passed
 - `npx.cmd expo-doctor`: not a valid success signal in this run; local checks passed, but Expo API checks timed out against `exp.host:443`.
+
+Local checks on 2026-06-04 after replacing Android `expo-print` PDF generation:
+- `npm.cmd test -- --runTestsByPath __tests__\price-list-download.test.tsx`: passed, 1 suite / 4 tests
+- `npm.cmd test -- --runInBand`: passed, 21 suites / 43 tests
+- `npm.cmd run typecheck`: passed
+- `npm.cmd run lint`: passed
+- `npx.cmd expo install --check`: passed
 
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
@@ -130,11 +142,22 @@ Fresh EAS build caveat:
   - Logs: `https://expo.dev/accounts/alextsarev/projects/splithub/builds/6f80cd5a-4af9-4be8-93d4-4fc94f602f25`
   - After it finishes, download the APK, save it under `artifacts/`, install on device `11000373CD011362`, and verify both PDF and Excel save into a phone folder.
 
+Latest EAS/APK status on 2026-06-04:
+- Correct preview build for the `pdf-lib` fix:
+  - Build id: `df38324a-bf39-4476-902f-5beae80fc7e0`
+  - Commit: `1bd0777f564de0d717ff2eb83e5cb231aec7627b`
+  - APK URL: `https://expo.dev/artifacts/eas/tyHCdJj3vGLR977Q9DMEtj.apk`
+  - Local APK: `artifacts\SplitHub-preview-1bd0777.apk`
+  - Size: `106397121`
+  - SHA256: `8CD167437397920DF0DB6E0C2C66841D677BC30A1B366E7E0159402C2AB18FFA`
+  - Installed on device `11000373CD011362` with `adb install -r -d`: `Success`
+- Device verification is paused because the phone relocked and shows `Введите пароль`; do not enter the user's PIN. Ask the user to unlock, then launch `ru.splithub.mobile` and verify PDF saving.
+
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
 - Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
-- Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed and pushed, but still needs the fresh APK from EAS build `6f80cd5a-4af9-4be8-93d4-4fc94f602f25` before device verification.
+- Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed, pushed, and installed from build `df38324a-bf39-4476-902f-5beae80fc7e0`; PDF/Excel phone-folder verification needs the phone unlocked.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
 
 ## Do Not Commit
