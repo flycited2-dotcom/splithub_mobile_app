@@ -1,6 +1,6 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { Modal, ScrollView, StyleSheet } from 'react-native';
+import { Modal, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 
 import HomeScreen from '../src/app/(tabs)/index';
@@ -137,6 +137,36 @@ test('keeps the home screen inside the safe area without scroll overshoot', () =
   expect(scrollView.props.alwaysBounceVertical).toBe(false);
   expect(scrollView.props.overScrollMode).toBe('never');
   expect(contentStyle.paddingBottom).toBe(16);
+});
+
+test('pulls down on the home screen to refresh the catalog', async () => {
+  const refreshCatalog = jest.fn().mockResolvedValue(undefined);
+  mockedUseCatalog.mockReturnValue({
+    error: null,
+    loading: false,
+    offline: false,
+    refresh: refreshCatalog,
+    snapshot: null,
+  });
+  mockedUseSession.mockReturnValue({
+    loading: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+    refreshProfile: jest.fn(),
+    register: jest.fn(),
+    user: null,
+  });
+
+  const { UNSAFE_getByType } = render(<HomeScreen />);
+  const scrollView = UNSAFE_getByType(ScrollView);
+
+  expect(scrollView.props.refreshControl.type).toBe(RefreshControl);
+
+  await act(async () => {
+    await scrollView.props.refreshControl.props.onRefresh();
+  });
+
+  expect(refreshCatalog).toHaveBeenCalledTimes(1);
 });
 
 test('colors the home quick filters by product group', () => {

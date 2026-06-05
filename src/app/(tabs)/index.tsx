@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const [polupromOpen, setPolupromOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const { loading, user } = useSession();
-  const { snapshot } = useCatalog();
+  const { loading: catalogLoading, refresh: refreshCatalog, snapshot } = useCatalog();
   const products = snapshot?.products;
   const authTarget = user ? '/profile' : '/auth/login';
   const homeFilters = useMemo(
@@ -65,6 +65,14 @@ export default function HomeScreen() {
         alwaysBounceVertical={false}
         bounces={false}
         overScrollMode="never"
+        refreshControl={
+          <RefreshControl
+            colors={[colors.accent]}
+            onRefresh={refreshCatalog}
+            refreshing={catalogLoading}
+            tintColor={colors.accent}
+          />
+        }
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.topRow}>

@@ -139,8 +139,11 @@ export default function OrdersScreen() {
           </View>
         </Pressable>
       ))}
-      <Pressable onPress={() => void refresh(true)} style={styles.refresh}>
-        <Text style={styles.refreshText}>Обновить</Text>
+      <Pressable
+        disabled={refreshing}
+        onPress={() => void refresh(true)}
+        style={[styles.refreshButton, refreshing && styles.refreshButtonDisabled]}>
+        <Text style={styles.refreshText}>{refreshing ? 'Обновляем...' : 'Обновить статусы'}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -212,9 +215,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
-  refresh: {
+  refreshButton: {
     alignSelf: 'flex-start',
+    borderColor: colors.accent,
+    borderRadius: 12,
+    borderWidth: 1,
     marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.6,
   },
   refreshText: {
     color: colors.accentDark,

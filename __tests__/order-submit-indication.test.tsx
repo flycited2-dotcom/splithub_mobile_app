@@ -235,6 +235,36 @@ test('pulls down to refresh order statuses', async () => {
   expect(mockedListOrders).toHaveBeenCalledTimes(2);
 });
 
+test('shows a clear loading state when the orders refresh button is pressed', async () => {
+  let resolveRefresh: ((value: { orders: [] }) => void) | undefined;
+  mockedUseLocalSearchParams.mockReturnValue({});
+  mockedListOrders
+    .mockResolvedValueOnce({ orders: [] })
+    .mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRefresh = resolve;
+    }));
+
+  const { getByText, queryByText } = render(<OrdersScreen />);
+
+  await waitFor(() => {
+    expect(getByText('Обновить статусы')).toBeTruthy();
+  });
+
+  fireEvent.press(getByText('Обновить статусы'));
+
+  expect(getByText('Обновляем...')).toBeTruthy();
+
+  await act(async () => {
+    resolveRefresh?.({ orders: [] });
+  });
+
+  await waitFor(() => {
+    expect(queryByText('Обновляем...')).toBeNull();
+    expect(getByText('Обновить статусы')).toBeTruthy();
+  });
+  expect(mockedListOrders).toHaveBeenCalledTimes(2);
+});
+
 test('pulls down in the cart to refresh the catalog used by prices and upsells', async () => {
   const refreshCatalog = jest.fn().mockResolvedValue(undefined);
   mockedUseCatalog.mockReturnValue({
