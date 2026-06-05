@@ -1,6 +1,6 @@
 # Mobile QA Queue
 
-Updated: 2026-06-04 17:53 +03:00
+Updated: 2026-06-05 23:57 +03:00
 
 Safety rules:
 - Do not change the storefront flow in `send.php` or `index.html`.
@@ -10,7 +10,7 @@ Safety rules:
 
 ## P0
 
-- [ ] **Full catalog performance** `(code-fixed again; fresh APK/device retest pending)`
+- [ ] **Full catalog performance** `(latest APK installed; device retest pending)`
   - Symptom: tapping "Весь каталог" opened a very heavy catalog and scrolling became jerky.
   - Old installed APK baseline on 2026-06-03: 111/111 janky frames, p90 113ms, p99 400ms, 3096 attached views, slow bitmap uploads 111.
   - First fix: replaced grouped full-catalog `ScrollView` with virtualized `FlatList` rows in branch `codex/native-site-parity`.
@@ -21,7 +21,8 @@ Safety rules:
   - New code fix: home full-catalog button, cart "continue shopping", and promotion notifications without a category now open `/catalog` with `mode=flat`; `ProductCard` uses `expo-image` with `cachePolicy="memory-disk"` and `recyclingKey`; catalog render callbacks are memoized with `useCallback`.
   - Local verification: the new RED tests failed on the old path, then passed after the fix; full Jest/typecheck/lint, `expo install --check`, and `npx expo-doctor` passed.
   - Fresh APK for retest: commit `b2f35a2`, EAS build `863be1cc-68e6-4907-abf7-f7cbdea2e949`, local file `artifacts\SplitHub-preview-b2f35a2.apk`, installed on TECNO BG6 with `adb install -r -d`: `Success`.
-  - Remaining check: unlock TECNO BG6 and capture ADB `gfxinfo` after repeated full-catalog scrolls on the installed fresh APK.
+  - Latest installed APK on 2026-06-05: commit `c6e0096`, EAS build `444ef799-a489-4233-b981-6ae4a84d713f`, local file `artifacts\SplitHub-preview-c6e0096.apk`, installed on TECNO BG6 with `adb install -r`: `Success`.
+  - Remaining check: capture ADB `gfxinfo` after repeated full-catalog scrolls on the installed `c6e0096` APK and ask the user for a manual feel check.
 
 - [x] **Auth/session state after login or registration** `(fixed and APK-verified on TECNO BG6)`
   - Symptom: user logs in/registers, but the app can still show the logged-out UI.
@@ -59,12 +60,28 @@ Safety rules:
   - Code fix in `a926490`: order status badges are distinct colors: `Новый` blue, `Подтверждён` orange, `Выполнен` green, `Отменён` red.
   - Local verification: `auth-phone-prefix` and `order-submit-indication` tests cover both changes; full Jest/typecheck/lint passed.
 
-- [x] **Swipe down to refresh cart and orders** `(code-fixed; APK build pending)`
+- [x] **Swipe down to refresh cart and orders** `(code-fixed; latest APK installed)`
   - User requested pull-to-refresh for order status and cart.
   - Code fix in `4e902e6`: orders `ScrollView` has `RefreshControl` and reloads `listOrders()` on swipe.
   - Code fix in `4e902e6`: cart `ScrollView` has `RefreshControl` and refreshes catalog data used by prices/upsells.
   - Local verification: `order-submit-indication` tests cover both refresh controls; full Jest/typecheck/lint passed, 22 suites / 54 tests.
-  - Remaining check: create/install fresh EAS preview APK from `4e902e6` after push.
+  - Latest APK `c6e0096` includes this fix and is installed on TECNO BG6.
+  - Remaining check: visual swipe verification on orders/cart in the installed APK.
+
+- [x] **Swipe down to refresh home catalog data** `(code-fixed; latest APK installed)`
+  - User requested pull-to-refresh on the home screen too.
+  - Code fix in `c6e0096`: home `ScrollView` has `RefreshControl` tied to `useCatalog().refresh`.
+  - Local verification: `home-auth-button` tests cover the home refresh control; full Jest/typecheck/lint passed, 22 suites / 57 tests.
+  - Latest APK `c6e0096` is installed on TECNO BG6.
+  - Remaining check: visual swipe verification on the home screen in the installed APK.
+
+- [x] **Launcher icon from final favicon** `(code-fixed; latest APK installed)`
+  - User rejected the previous app icon as off-axis/crooked.
+  - Code fix in `c6e0096`: icon assets were rebuilt from `C:\Users\user\Desktop\клод скрины\сплитхом\Фавикон_Логотип splithub.png`.
+  - Generated assets: `icon.png`, adaptive foreground/monochrome icons, favicon, and splash icon.
+  - Verification before build: dark outer corners on the main icon and transparent adaptive foreground corners.
+  - Latest APK `c6e0096` is installed on TECNO BG6.
+  - Remaining check: visual confirmation from Android launcher that the icon is centered and looks good.
 
 - [x] **Cart/product added indication** `(fixed and APK-verified)`
   - Symptom: after tapping add/order there was no persistent indication on product card or cart tab.
@@ -125,3 +142,8 @@ Safety rules:
 - [ ] **Replace modal add-to-cart alerts**
   - Earlier implementation still used a blocking "Добавлено в заявку" modal on some paths.
   - Current priority is persistent counters/badges; replace remaining modal alerts with non-blocking feedback in the next polish pass.
+
+- [ ] **Public release, iOS build, RuStore, and security plan**
+  - User asked for a concrete public publishing plan for Google Play, App Store/iOS, and RuStore.
+  - User also asked how to build for iPhone and to work through app/backend security seriously.
+  - Next step: finish official-source research and produce a staged plan covering store accounts, signing, privacy/data forms, testing tracks, iOS EAS build requirements, push notifications, and OWASP MASVS-style hardening.

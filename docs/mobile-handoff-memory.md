@@ -1,6 +1,6 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-04 17:53 +03:00
+Updated: 2026-06-05 23:57 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
@@ -8,7 +8,7 @@ This file is the working memory for continuing the SplitHub mobile app safely af
 
 - Mobile app workspace: `C:\Users\user\Documents\GitHub\VSCode\splithub_mobile_app\mobile-native-parity`
 - Mobile branch: `codex/native-site-parity`
-- Mobile HEAD before this handoff docs update: `4e902e6 feat: add pull to refresh for cart and orders`
+- Mobile HEAD before this handoff docs update: `c6e0096 feat: refresh home and update app icon`
 - Target GitHub repository requested by user: `https://github.com/flycited2-dotcom/splithub_mobile_app.git`
 - Site workspace: `C:\Users\user\Documents\GitHub\splithub`
 - Site branch with mobile notification changes: `codex/mobile-notifications-russian`
@@ -91,6 +91,15 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - Orders screen supports swipe down to reload server order statuses.
   - Cart screen supports swipe down to refresh the catalog data used by prices and installer-kit upsells.
   - No site files or production storefront files were changed.
+- Home refresh, icon, and push routing follow-up on 2026-06-05:
+  - Commit `c6e0096 feat: refresh home and update app icon`.
+  - App icon assets were rebuilt from `C:\Users\user\Desktop\клод скрины\сплитхом\Фавикон_Логотип splithub.png`.
+  - Generated assets: `assets/images/icon.png`, `assets/images/android-icon-foreground.png`, `assets/images/android-icon-monochrome.png`, `assets/images/favicon.png`, `assets/images/splash-icon.png`.
+  - Icon verification before build: outer corners are dark `#061226`; adaptive foreground corners are transparent, so the centered favicon should not show white external corners.
+  - Home screen now supports pull-to-refresh through `useCatalog().refresh`.
+  - Orders screen refresh text is now a real button state: `Обновить статусы` / `Обновляем...`.
+  - Promotion push routing now supports `product_id`, e.g. `{ type: "promotion", product_id: "mdv-09" }` opens `/product/mdv-09`.
+  - No site files or production storefront files were changed.
 
 ## Last Known Verification
 
@@ -154,6 +163,11 @@ Local checks on 2026-06-04 after home UX/status polish and pull-to-refresh:
   - `npm.cmd test -- --runTestsByPath __tests__\order-submit-indication.test.tsx __tests__\home-auth-button.test.tsx __tests__\notification-router.test.ts __tests__\product-card-cart-state.test.tsx`: passed after the cart route fix, 4 suites / 13 tests.
   - `npm.cmd run typecheck`: passed
   - `npm.cmd run lint`: passed
+
+Local checks on 2026-06-05 after the app icon/home refresh/promotion routing follow-up:
+- `npm.cmd run typecheck`: passed.
+- `npm.cmd run lint`: passed.
+- `npm.cmd test -- --runInBand`: passed, 22 suites / 57 tests.
 
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
@@ -228,11 +242,30 @@ Latest EAS/APK status on 2026-06-04:
   - `npx.cmd eas build --platform android --profile preview --non-interactive --wait` exited with code `1073807364` and no output before enqueueing a visible build.
   - Latest EAS list still shows `a926490` as the newest finished build, so create a fresh EAS preview build from `4e902e6` after push if a device APK is needed.
 
+Latest EAS/APK status on 2026-06-05:
+- Correct preview build for `c6e0096 feat: refresh home and update app icon`:
+  - Build id: `444ef799-a489-4233-b981-6ae4a84d713f`
+  - Commit: `c6e009626e060c7ecb7cda7dadacf2f7789e0bb9`
+  - Status: `FINISHED`
+  - Logs: `https://expo.dev/accounts/alextsarev/projects/splithub/builds/444ef799-a489-4233-b981-6ae4a84d713f`
+  - APK URL: `https://expo.dev/artifacts/eas/9repJfsxU7VgHtHob3Ksgr.apk`
+  - Local APK: `artifacts\SplitHub-preview-c6e0096.apk`
+  - Size: `102.92 MB`
+  - SHA256: `56EE888E488BED7ECABF0A4D336F97C1390FBC493293424B17BADC067D3EB04B`
+  - Installed on TECNO BG6 `11000373CD011362` with `adb install -r`: `Success`.
+  - Package: `ru.splithub.mobile`, `versionName=1.0.0`, `versionCode=1`, `targetSdk=36`, `lastUpdateTime=2026-06-05 23:37:34`.
+  - ADB launch check: app process `ru.splithub.mobile` was foreground/resumed. `logcat` showed `ReactNativeJS: Running "main"` and `Displayed ru.splithub.mobile/.MainActivity`; no `FATAL EXCEPTION` for `ru.splithub.mobile` was present in the captured logs.
+  - Caveat: `adb shell monkey` printed native tombstone notices on TECNO BG6 during launch. Current evidence points to system/monkey noise rather than an app crash because the app stayed resumed, but keep this in mind during manual visual testing.
+- Public release / iOS / security planning:
+  - User asked for a plan for Google Play, App Store/iOS, RuStore, iOS builds, and a serious security review.
+  - Official-source research was started but not finalized in the user-facing answer yet. Continue from official Google Play, Apple Developer, Expo EAS, RuStore, and OWASP MASVS sources before giving store/security recommendations.
+
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
-- Full catalog performance follow-up: code fix is local and tested; needs fresh EAS APK, install on TECNO BG6, and ADB `gfxinfo` scroll profile after the user unlocks the phone.
-- Home UX/status polish and pull-to-refresh: code is committed locally and fully verified by Jest/typecheck/lint; after push, start a fresh EAS preview build from `4e902e6`, install it on TECNO BG6, then visually verify home bottom gap, order status badges, auth `+7`, and pull-to-refresh in cart/orders.
+- Full catalog performance follow-up: latest APK from `c6e0096` is installed; run ADB `gfxinfo` scroll profiling and manual visual checks after the phone is unlocked and the user is ready.
+- Home UX/status polish and pull-to-refresh: latest APK from `c6e0096` is installed; visually verify home bottom gap, order status badges, auth `+7`, pull-to-refresh in home/cart/orders, and the updated launcher icon.
+- Public publication/security follow-up: finish the official-source plan for Google Play, App Store/iOS builds, RuStore, push notification architecture, and mobile/backend security hardening.
 - Mobile Telegram/email server deploy: isolated site files are deployed and mobile API order smoke passed. Still needs human visual confirmation that Telegram message `SH-00054` is Russian, has inline buttons, and email arrived in the mailbox.
 - Direct price-list download: old CSV app-cache flow was deployed and APK-verified on TECNO BG6. New PDF/Excel phone-folder flow is committed, pushed, and installed from build `df38324a-bf39-4476-902f-5beae80fc7e0`; PDF/Excel phone-folder verification needs the phone unlocked.
 - Storefront smoke test after any site deploy: `send.php` must still accept a live-site-style order with no item ids and return `{"ok":true}`.
