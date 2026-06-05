@@ -1,6 +1,6 @@
 # Mobile QA Queue
 
-Updated: 2026-06-05 23:57 +03:00
+Updated: 2026-06-06 00:41 +03:00
 
 Safety rules:
 - Do not change the storefront flow in `send.php` or `index.html`.
@@ -9,6 +9,23 @@ Safety rules:
 - Catalog truth for Splithub is `products.js` on the site side: 275 active items with owner prices.
 
 ## P0
+
+- [x] **Mobile API resilience** `(code-fixed and locally verified)`
+  - Diagnostic report found no request timeout, fragile `response.json()` on HTML/5xx, and no central expired-session handling.
+  - Code fix: `src/lib/api.ts` adds a 15s default timeout, stable non-JSON errors like `HTTP_502`, `401` -> `SESSION_EXPIRED`, and clears the stored token on expired sessions.
+  - Tests: `__tests__/api.test.ts` covers bearer headers, non-JSON server errors, `401` token clearing, and hanging-request timeout.
+
+- [x] **Push registration lifecycle** `(code-fixed and locally verified; live push retest pending)`
+  - Diagnostic report found device registration only happened after opening the Profile tab.
+  - Code fix: `SessionProvider` now ensures device registration after session restore/login/register without blocking auth.
+  - Code fix: Expo push token is persisted in AsyncStorage; Profile uses the shared token, loads notification preferences with a safe fallback, and removes the registered device on logout.
+  - Code fix: foreground notifications now use `Notifications.setNotificationHandler` with banner/list display.
+  - Tests: `__tests__/session-push-registration.test.tsx` covers push registration after restoring a signed-in session.
+
+- [x] **Expired session user message** `(code-fixed and locally verified)`
+  - Diagnostic report found expired sessions looked like generic network failures.
+  - Code fix: `SESSION_EXPIRED` maps to `Сессия истекла. Войдите заново.`
+  - Tests: `__tests__/session-errors.test.ts`.
 
 - [ ] **Full catalog performance** `(latest APK installed; device retest pending)`
   - Symptom: tapping "Весь каталог" opened a very heavy catalog and scrolling became jerky.
@@ -48,6 +65,29 @@ Safety rules:
   - Remaining check: actual mailbox delivery must be confirmed in email inbox; accessible server logs did not expose the notification result.
 
 ## P1
+
+- [x] **Catalog/cart cache safety** `(code-fixed and locally verified)`
+  - Diagnostic report found catalog cache had no schema version, TTL, or bad-cache safety.
+  - Code fix: catalog cache now uses `{ schemaVersion, savedAt, snapshot }`, expires after 24h, and ignores malformed data; cart cache also ignores malformed JSON instead of throwing.
+  - Tests: `__tests__/storage.test.ts`.
+
+- [x] **Push URL allowlist** `(code-fixed and locally verified)`
+  - Diagnostic report found `manager_message` push payloads could open arbitrary `https://` URLs.
+  - Code fix: manager links are restricted to `t.me`, `splithub.ru`, and `www.splithub.ru`; unknown domains fall back to the default manager Telegram.
+  - Tests: `__tests__/notification-router.test.ts`.
+
+- [x] **`.env` ignored** `(code-fixed)`
+  - Diagnostic report found `.env` was not ignored, only `.env*.local`.
+  - Code fix: `.gitignore` now includes `.env`.
+
+- [x] **Expo SDK patch alignment** `(code-fixed and locally verified)`
+  - `npx expo-doctor` reported patch-version drift in SDK 56 packages during verification.
+  - Code fix: `npx expo install --fix` updated Expo patch packages and added the `expo-image` config plugin.
+  - Verification: `npx.cmd expo-doctor` passed 21/21 after the update.
+
+- [ ] **CI, crash reporting, and device/iOS hardening**
+  - Still open from diagnostic report: no CI workflow, no crash reporting/analytics, iOS not built/tested, and no live push verification on Android+iPhone after the new lifecycle fix.
+  - Security residual: `npm audit --omit=dev` still shows 11 moderate Expo build/prebuild tooling advisories; do not run `npm audit fix --force` unless we intentionally accept a breaking Expo change.
 
 - [x] **Home safe-area and quick-filter polish** `(code-fixed; final APK from pull-to-refresh commit still pending)`
   - User disliked that the home screen content scrolled under the Android/iOS system area and left a useless empty tail after "Полупром" / "Чёрные сплиты".

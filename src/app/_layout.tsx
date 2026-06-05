@@ -10,6 +10,15 @@ import { CatalogProvider } from '../features/catalog/catalog-context';
 import { notificationTarget } from '../features/notifications/notification-router';
 import { SessionProvider } from '../features/session/session-context';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 function NotificationNavigation() {
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {

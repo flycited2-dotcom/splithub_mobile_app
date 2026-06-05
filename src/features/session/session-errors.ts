@@ -6,5 +6,6 @@ export function sessionErrorMessage(code: string) {
   if (code === 'INVALID_CREDENTIALS') return 'Неверный телефон или пароль';
   if (code === 'PHONE_ALREADY_REGISTERED') return 'Этот телефон уже зарегистрирован';
   if (code === 'INVALID_REGISTRATION') return 'Проверьте заполнение обязательных полей';
+  if (code === 'SESSION_EXPIRED') return 'Сессия истекла. Войдите заново.';
   return 'Не удалось выполнить запрос. Проверьте подключение к интернету.';
 }

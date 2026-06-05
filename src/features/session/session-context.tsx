@@ -10,6 +10,10 @@ import {
 
 import { api } from '../../lib/api';
 import { tokenStorage } from '../../lib/token-storage';
+import {
+  defaultNotificationPreferences,
+  ensureDeviceRegistered,
+} from '../notifications/register-device';
 
 export type User = {
   id: number;
@@ -31,6 +35,14 @@ type SessionContextValue = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+async function registerSessionDevice() {
+  try {
+    await ensureDeviceRegistered(defaultNotificationPreferences);
+  } catch {
+    // Push is useful, but it must not block auth/session restore.
+  }
+}
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +57,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     try {
       const result = await api<{ user: User }>('profile');
       setUser(result.user);
+      void registerSessionDevice();
     } catch {
       await tokenStorage.clear();
       setUser(null);
@@ -69,6 +82,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         });
         await tokenStorage.set(result.token);
         setUser(result.user);
+        void registerSessionDevice();
       },
       register: async (name, phone, password, telegram) => {
         const result = await api<{ token: string; user: User }>('register', {
@@ -77,6 +91,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         });
         await tokenStorage.set(result.token);
         setUser(result.user);
+        void registerSessionDevice();
       },
       logout: async () => {
         try {

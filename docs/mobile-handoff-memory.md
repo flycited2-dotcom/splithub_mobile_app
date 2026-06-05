@@ -1,6 +1,6 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-05 23:57 +03:00
+Updated: 2026-06-06 00:41 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
@@ -100,6 +100,20 @@ This file is the working memory for continuing the SplitHub mobile app safely af
   - Orders screen refresh text is now a real button state: `Обновить статусы` / `Обновляем...`.
   - Promotion push routing now supports `product_id`, e.g. `{ type: "promotion", product_id: "mdv-09" }` opens `/product/mdv-09`.
   - No site files or production storefront files were changed.
+- Diagnostic hardening on 2026-06-06:
+  - Based on `docs/diagnostic-report-2026-06-06.md`.
+  - Mobile-only files changed; no `send.php`, `index.html`, site catalog files, or Telegram curl settings were touched.
+  - `src/lib/api.ts` now has a default 15s timeout, maps non-JSON server responses to stable `HTTP_<status>` errors, maps `401` to `SESSION_EXPIRED`, and clears the stored token on expired sessions.
+  - `src/features/session/session-errors.ts` now shows `Сессия истекла. Войдите заново.` for expired sessions.
+  - Push registration moved into session restore/login/register through `SessionProvider`; it is fire-and-forget so auth is not blocked if push permissions/network fail.
+  - `src/features/notifications/register-device.ts` now exports shared defaults, persists the Expo push token in AsyncStorage, can ensure/remove the registered device, and loads notification preferences with a safe default fallback.
+  - `src/app/_layout.tsx` now sets a foreground notification handler with `shouldShowBanner` and `shouldShowList`.
+  - `src/app/(tabs)/profile.tsx` now uses the shared/persisted push token and removes the registered device on logout.
+  - `src/features/notifications/notification-router.ts` now allowlists external manager message URLs to `https://t.me/*` and `https://splithub.ru/*`; untrusted URLs fall back to `https://t.me/Byttehnikaopt`.
+  - `src/lib/storage.ts` now stores catalog cache in a schema envelope with 24h TTL and ignores malformed/expired catalog cache or malformed cart cache instead of throwing.
+  - `.env` is now ignored.
+  - Expo SDK patch packages were aligned with `npx expo install --fix`, and `app.json` now includes the `expo-image` config plugin added by Expo.
+  - New/updated tests: `__tests__/api.test.ts`, `__tests__/storage.test.ts`, `__tests__/session-push-registration.test.tsx`, `__tests__/notification-router.test.ts`, `__tests__/session-errors.test.ts`.
 
 ## Last Known Verification
 
@@ -168,6 +182,15 @@ Local checks on 2026-06-05 after the app icon/home refresh/promotion routing fol
 - `npm.cmd run typecheck`: passed.
 - `npm.cmd run lint`: passed.
 - `npm.cmd test -- --runInBand`: passed, 22 suites / 57 tests.
+
+Local checks on 2026-06-06 after diagnostic hardening:
+- RED targeted tests failed first for missing API timeout/non-JSON/401 handling, unsafe manager URL routing, missing expired-session message, unsafe cache parsing, and no session-level push registration.
+- `npm.cmd test -- --runInBand --runTestsByPath __tests__\api.test.ts __tests__\notification-router.test.ts __tests__\session-errors.test.ts __tests__\storage.test.ts __tests__\session-push-registration.test.tsx`: passed, 5 suites / 16 tests.
+- `npm.cmd test -- --runInBand --ci`: passed, 24 suites / 67 tests.
+- `npm.cmd run typecheck`: passed.
+- `npm.cmd run lint`: passed.
+- `npx.cmd expo-doctor`: passed, 21/21 checks.
+- `npm.cmd audit --omit=dev`: still reports 11 moderate vulnerabilities in Expo build/prebuild tooling through `uuid`/`xcode`; `npm audit fix --force` would install incompatible/breaking Expo packages, so it was not run.
 
 Fresh APK:
 - EAS build id: `c657c6ce-6e45-4533-bc30-beaabedacfc7`
@@ -263,6 +286,7 @@ Latest EAS/APK status on 2026-06-05:
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
+- Device verification after diagnostic hardening: build/install a fresh APK before claiming push/session/cache hardening is device-verified.
 - Full catalog performance follow-up: latest APK from `c6e0096` is installed; run ADB `gfxinfo` scroll profiling and manual visual checks after the phone is unlocked and the user is ready.
 - Home UX/status polish and pull-to-refresh: latest APK from `c6e0096` is installed; visually verify home bottom gap, order status badges, auth `+7`, pull-to-refresh in home/cart/orders, and the updated launcher icon.
 - Public publication/security follow-up: finish the official-source plan for Google Play, App Store/iOS builds, RuStore, push notification architecture, and mobile/backend security hardening.

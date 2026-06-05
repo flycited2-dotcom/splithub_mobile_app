@@ -6,9 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { useSession } from '../../features/session/session-context';
 import {
+  defaultNotificationPreferences,
+  ensureDeviceRegistered,
+  loadNotificationPreferences,
   type NotificationPreferences,
-  registerDevice,
-  removeDevice,
+  removeRegisteredDevice,
   updateNotificationPreferences,
 } from '../../features/notifications/register-device';
 import { appConfig } from '../../features/home/app-config';
@@ -20,12 +22,6 @@ import {
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
 
-const defaultPreferences: NotificationPreferences = {
-  order_status_enabled: true,
-  promotions_enabled: true,
-  manager_messages_enabled: true,
-};
-
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, loading, logout } = useSession();
@@ -34,31 +30,57 @@ export default function ProfileScreen() {
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
   const [priceDownloading, setPriceDownloading] = useState(false);
-  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultNotificationPreferences);
 
   useEffect(() => {
-    if (!user) return;
-    void registerDevice(defaultPreferences)
-      .then((token) => {
-        setExpoToken(token);
-        if (token) setNotificationStatus('Устройство зарегистрировано для push-уведомлений');
-      })
-      .catch(() => setNotificationStatus('Не удалось подключить push-уведомления. Проверьте разрешение уведомлений и подключение.'));
+    let active = true;
+    if (!user) {
+      setExpoToken(null);
+      setNotificationStatus('');
+      setPreferences(defaultNotificationPreferences);
+      return () => {
+        active = false;
+      };
+    }
+
+    async function syncNotifications() {
+      const savedPreferences = await loadNotificationPreferences();
+      if (!active) return;
+      setPreferences(savedPreferences);
+      const token = await ensureDeviceRegistered(savedPreferences);
+      if (!active) return;
+      setExpoToken(token);
+      if (token) setNotificationStatus('Устройство зарегистрировано для push-уведомлений');
+    }
+
+    void syncNotifications().catch(() => {
+      if (active) {
+        setNotificationStatus('Не удалось подключить push-уведомления. Проверьте разрешение уведомлений и подключение.');
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   function setPreference(key: keyof NotificationPreferences, enabled: boolean) {
     const next = { ...preferences, [key]: enabled };
     setPreferences(next);
-    if (expoToken) {
-      void updateNotificationPreferences(expoToken, next).catch(() =>
-        setNotificationStatus('Не удалось сохранить настройки уведомлений'),
-      );
-    }
+    void (async () => {
+      try {
+        const token = expoToken ?? await ensureDeviceRegistered(next);
+        if (!token) return;
+        setExpoToken(token);
+        await updateNotificationPreferences(token, next);
+      } catch {
+        setNotificationStatus('Не удалось сохранить настройки уведомлений');
+      }
+    })();
   }
 
   async function logoutAndRemoveDevice() {
     try {
-      if (expoToken) await removeDevice(expoToken);
+      await removeRegisteredDevice();
     } finally {
       await logout();
     }

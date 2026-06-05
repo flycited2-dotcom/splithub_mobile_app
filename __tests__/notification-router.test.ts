@@ -15,3 +15,18 @@ test('routes product promotion to product details', () => {
 test('routes promotion without category to the full catalog', () => {
   expect(notificationTarget({ type: 'promotion' })).toBe('/catalog?mode=flat');
 });
+
+test('routes manager messages only to trusted domains', () => {
+  expect(notificationTarget({
+    type: 'manager_message',
+    telegram_url: 'https://t.me/Byttehnikaopt',
+  })).toBe('https://t.me/Byttehnikaopt');
+  expect(notificationTarget({
+    type: 'manager_message',
+    telegram_url: 'https://splithub.ru/orders/47',
+  })).toBe('https://splithub.ru/orders/47');
+  expect(notificationTarget({
+    type: 'manager_message',
+    telegram_url: 'https://evil.example/phishing',
+  })).toBe('https://t.me/Byttehnikaopt');
+});
