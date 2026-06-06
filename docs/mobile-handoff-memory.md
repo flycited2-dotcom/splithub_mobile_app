@@ -1,6 +1,6 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-06 17:30 +03:00
+Updated: 2026-06-06 17:45 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
@@ -50,11 +50,17 @@ Release buildType is signed with the **debug keystore** (Expo default) — insta
 ### Sound notifications (done, global)
 - `~/.claude/settings.json` hooks: `Notification`→attention beep, `Stop`→done beep, `StopFailure`→error double-beep, via `~/.claude/claude-notify.ps1`. Toggle with `sound on|off|test` (added `~/.claude` to PATH; `~/.claude/sound.cmd`). Mute flag file: `~/.claude/sound-disabled`.
 
-### Next steps (agreed order)
-1. (this) write handoff + commit/push both repos.
-2. Deploy `api/lib/push.php` fix to splithub.ru.
-3. Re-test push end to end on device (VPN on phone) — the installed `*-dbg.apk` still surfaces the raw error if needed.
-4. Then address the RU push-provider product decision.
+### Status (updated 2026-06-06 17:45) — PUSH WORKS END TO END ✅
+1. ✅ Handoff written + both repos committed/pushed: mobile `a32bd7a` (codex/native-site-parity), backend `08ecde4` (codex/mobile-notifications-russian).
+2. ✅ `api/lib/push.php` fix **DEPLOYED** to splithub.ru via paramiko/SFTP — server backup `api/lib/push.php.bak-20260606-171343`, `php -l` clean, storefront/catalog returned 200. Verified live: `register_device` → `{"ok":true}` (SQL error gone).
+3. ✅ Push re-tested on device — Profile shows **"Устройство зарегистрировано для push-уведомлений"**. A real test push sent from the PC (VPN) via the Expo Push API was **delivered and shown on the phone** with correct RU text + emoji (also vibrated).
+4. ✅ Deep-link routing demonstrated live: a `promotion` push with `data.category` opens the filtered catalog section (`truba` → copper pipe, confirmed on device); `data.product_id` → product card; no target → whole catalog. Logic in `notification-router.ts`; category ids = quick-filter ids in `quick-filters.ts`. Backend `sendUserPush(...,$target)` puts `$target` into the notification `data`.
+
+### Remaining / open
+- **Step 5 (product decision, RU):** Expo Push is geo-blocked in Russia. Working push required VPN on BOTH the device (to get the Expo token; saw 403 without it) AND the sender (the server is in RU, so server-side `sendUserPush` → exp.host likely 403s; the working test was sent from the PC over VPN). For production RU push, move to **RuStore Push (VK)** or a direct FCM server send from non-RU infrastructure.
+- Build a final **clean APK** — source debug logs are already reverted; the APK currently installed on TECNO BG6 still contains a temporary `console.log` of the token.
+- **Reproducibility:** convert the `node_modules` patches to **patch-package** and the `android/` overrides to an Expo **config plugin** (build fixes currently live in gitignored locations and are lost on `npm install`/`prebuild --clean`).
+- Test artifacts: device Expo token used for tests `ExponentPushToken[x-FstHGur1kqZfWFGcm6pR]`; harmless test device rows on the server (`deploy-verify-test` + the real one).
 
 ## Repositories
 
