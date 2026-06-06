@@ -17,6 +17,8 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+# release signing secrets (passwords) — NEVER commit
+keystore.properties
 
 # Metro
 .metro-health-check*
@@ -28,6 +30,7 @@ yarn-error.*
 
 # local build/test artifacts
 /artifacts/
+gradle-build*.log
 
 # macOS
 .DS_Store
@@ -50,5 +53,8 @@ service-account*.json
 example
 
 # generated native folders
+# /android is committed (bare workflow) to keep the Windows local-build overrides
+# and release signing config reproducible; its own android/.gitignore excludes build
+# artifacts, and the rules above exclude secrets (*.jks, keystore.properties,
+# google-services.json). /ios stays generated via `expo prebuild`.
 /ios
-/android

@@ -1,0 +1,20 @@
+diff --git a/node_modules/expo-modules-core/android/build.gradle b/node_modules/expo-modules-core/android/build.gradle
+index 6d38a93..0da2b6b 100644
+--- a/node_modules/expo-modules-core/android/build.gradle
++++ b/node_modules/expo-modules-core/android/build.gradle
+@@ -103,6 +103,7 @@ android {
+     externalNativeBuild {
+       cmake {
+         def cppArguments = [
++          "-DCMAKE_SUPPRESS_REGENERATION=ON",
+           "-DANDROID_STL=c++_shared",
+           "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+           "-DREACT_NATIVE_DIR=${expoModuleExtension.reactNativeDir}",
+@@ -123,6 +124,7 @@ android {
+ 
+   externalNativeBuild {
+     cmake {
++      version "3.31.6"
+       path "CMakeLists.txt"
+     }
+   }

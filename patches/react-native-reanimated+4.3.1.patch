@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-reanimated/android/build.gradle b/node_modules/react-native-reanimated/android/build.gradle
+index 8167d16..81052c1 100644
+--- a/node_modules/react-native-reanimated/android/build.gradle
++++ b/node_modules/react-native-reanimated/android/build.gradle
+@@ -168,7 +168,8 @@ android {
+ 
+         externalNativeBuild {
+             cmake {
+-                arguments "-DANDROID_STL=c++_shared",
++                arguments "-DCMAKE_SUPPRESS_REGENERATION=ON",
++                        "-DANDROID_STL=c++_shared",
+                         "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
+                         "-DANDROID_TOOLCHAIN=clang",
+                         "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",

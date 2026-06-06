@@ -1,0 +1,17 @@
+# Shell scripts must stay LF so `bash android/gradlew` works after a Windows checkout
+*.sh    text eol=lf
+gradlew text eol=lf
+# Windows scripts stay CRLF
+*.bat   text eol=crlf
+
+# Binary assets — never apply line-ending / text conversion
+*.jar      binary
+*.keystore binary
+*.jks      binary
+*.p8       binary
+*.p12      binary
+*.png      binary
+*.webp     binary
+*.ttf      binary
+*.otf      binary
+*.ico      binary

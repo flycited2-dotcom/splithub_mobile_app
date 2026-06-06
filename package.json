@@ -45,11 +45,13 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
     "jest-expo": "^56.0.4",
+    "patch-package": "^8.0.1",
     "react-test-renderer": "^19.2.3",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
+    "postinstall": "patch-package",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",

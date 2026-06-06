@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-screens/android/build.gradle b/node_modules/react-native-screens/android/build.gradle
+index d3ede15..fe83635 100644
+--- a/node_modules/react-native-screens/android/build.gradle
++++ b/node_modules/react-native-screens/android/build.gradle
+@@ -131,7 +131,8 @@ android {
+         }
+         externalNativeBuild {
+             cmake {
+-                arguments "-DANDROID_STL=c++_shared",
++                arguments "-DCMAKE_SUPPRESS_REGENERATION=ON",
++                        "-DANDROID_STL=c++_shared",
+                         "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+             }
+         }
+@@ -142,6 +143,7 @@ android {
+     }
+     externalNativeBuild {
+         cmake {
++            version "3.31.6"
+             path "CMakeLists.txt"
+         }
+     }

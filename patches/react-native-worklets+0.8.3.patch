@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-worklets/android/build.gradle b/node_modules/react-native-worklets/android/build.gradle
+index e189e1c..59cc03b 100644
+--- a/node_modules/react-native-worklets/android/build.gradle
++++ b/node_modules/react-native-worklets/android/build.gradle
+@@ -215,7 +215,8 @@ android {
+ 
+         externalNativeBuild {
+             cmake {
+-                arguments "-DANDROID_STL=c++_shared",
++                arguments "-DCMAKE_SUPPRESS_REGENERATION=ON",
++                        "-DANDROID_STL=c++_shared",
+                         "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
+                         "-DANDROID_TOOLCHAIN=clang",
+                         "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",

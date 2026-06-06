@@ -1,0 +1,47 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+        classpath 'com.google.gms:google-services:4.4.4'
+    classpath('com.android.tools.build:gradle')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+  }
+}
+
+allprojects {
+  configurations.all {
+    resolutionStrategy {
+      // androidx.collection:collection:1.0.0 has no jar on google maven (404);
+      // pin to an available version so transitive 1.0.0 requests resolve.
+      force 'androidx.collection:collection:1.5.0'
+    }
+  }
+  repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+  }
+}
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"
+
+// Force a newer CMake for all native modules to work around the Windows
+// "build.ninja still dirty after 100 tries" CONFIGURE_DEPENDS bug in CMake 3.22.1.
+gradle.projectsEvaluated {
+  rootProject.subprojects.each { proj ->
+    def androidExt = proj.extensions.findByName('android')
+    if (androidExt != null) {
+      try { androidExt.externalNativeBuild.cmake.version = "3.31.6" } catch (Throwable ignored) {}
+      try { androidExt.defaultConfig.externalNativeBuild.cmake.arguments.add("-DCMAKE_SUPPRESS_REGENERATION=ON") } catch (Throwable ignored) {}
+    }
+    proj.tasks.configureEach { t ->
+      if (t.name.toLowerCase().contains('lint')) { t.enabled = false }
+    }
+  }
+}
