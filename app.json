@@ -18,7 +18,7 @@
       "package": "ru.splithub.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#061226",
+        "backgroundColor": "#F6A400",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
