@@ -1,8 +1,65 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-06 17:45 +03:00
+Updated: 2026-06-06 18:30 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
+
+---
+
+## 2026-06-06 (evening) — Roadmap step 1 DONE: reproducible local release build + release keystore
+
+Roadmap step 1 (the foundation) is complete and verified. Committed as `db0e2b6`
+on branch `codex/native-site-parity`. Decision recorded: releases are built
+**locally on Windows**, signed with our **own local keystore**.
+
+### What changed
+- **Release keystore (own local file).** `android/app/release.jks` (gitignored via
+  `*.jks`), alias `splithub-release`, RSA-2048, valid to 2053. Passwords live in
+  `android/keystore.properties` (gitignored). The release variant signs from this
+  file; it falls back to the debug keystore if the file is absent.
+  - Cert SHA-256: `41:09:66:4E:4D:FD:59:1F:7B:E8:78:DF:AA:C3:3C:00:4E:0B:68:7B:B5:B9:94:0D:7F:A5:D4:C0:C5:76:86:AE`
+  - ⚠️ **BACK UP `release.jks` + `keystore.properties` offline** (e.g. password
+    manager). Losing them = the app can never be updated in stores.
+- **patch-package.** The node_modules CMake fixes are captured in `patches/`
+  (react-native-screens / -worklets / -reanimated / expo-modules-core).
+  `package.json` has `postinstall: patch-package`, so `npm install` re-applies them.
+- **android/ tracked in git (bare workflow).** All Windows build overrides
+  (long-path cmake 3.31.6, `CMAKE_SUPPRESS_REGENERATION`, `collection:1.5.0` force,
+  lint-off) + the release signing config now live in committed
+  `android/build.gradle` / `android/app/build.gradle`. `/android` removed from root
+  `.gitignore`; `android/.gitignore` still excludes build artifacts.
+- **.gitattributes added.** `gradlew`/`*.sh` = LF (so `bash android/gradlew` works
+  after a Windows checkout), `*.bat` = CRLF, binaries (jar/keystore/webp/png/ttf)
+  protected from EOL conversion.
+- Removed 24 stale `gradle-build*.log` files; ignore the pattern going forward.
+- Note: the config-plugin approach (suggested earlier) was intentionally **not**
+  used — committing `android/` is more robust for an autonomous local Windows build.
+  Trade-off: an Expo SDK upgrade will need a manual native merge (no clean prebuild).
+
+### Verification (all GREEN)
+- `gradlew :app:signingReport` → release variant uses `release.jks`, alias `splithub-release`.
+- patch-package reverse (markers→0) then apply (markers→1) for all 4 modules — reproducible.
+- Commit secret scan: clean (no `*.jks` / `keystore.properties` / `google-services.json` / build artifacts staged).
+- **Full `:app:assembleRelease` (arm64-v8a) → BUILD SUCCESSFUL in 1m38s.** APK
+  `android/app/build/outputs/apk/release/app-release.apk`, 49,751,254 bytes (~47.4 MB).
+  apksigner V2 cert SHA-256 == keystore SHA-256 (`4109664e...86ae`) → signed with our key.
+
+### Build command (unchanged, now reproducible from a clean checkout)
+```
+export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.19.10-hotspot"
+export ANDROID_HOME="/c/Users/user/AppData/Local/Android/Sdk"
+export CMAKE_VERSION="3.31.6"   # required: worklets/reanimated read it
+bash android/gradlew -p android :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+```
+Still needs **VPN** for Google Maven (RU geo-block) when deps are not cached.
+
+### Caveats / not done here
+- This release APK still has `versionCode 1` / `versionName 1.0.0` and may include
+  the temporary token `console.log` noted below — produce a clean APK before public
+  distribution (roadmap step 2).
+- Uncommitted feature edits remain in `src/app/(tabs)/profile.tsx` and
+  `src/features/notifications/register-device.ts` (left untouched; tail of the
+  diagnostic-hardening work, unrelated to step 1).
 
 ---
 
