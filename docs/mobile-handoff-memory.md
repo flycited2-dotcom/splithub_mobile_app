@@ -1,8 +1,60 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-06 00:41 +03:00
+Updated: 2026-06-06 17:30 +03:00
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
+
+---
+
+## 2026-06-06 — Local Android build WORKING + full push trace
+
+### TL;DR
+- A release APK now builds **locally on Windows** (no EAS, no quota): `android/app/build/outputs/apk/release/app-release.apk` (~48 MB). Local copies: `artifacts/SplitHub-local-fcm.apk`, `artifacts/SplitHub-local-fcm-dbg.apk`.
+- The whole push chain was traced end to end. Everything in the app is correct. The only remaining blockers are **operational**: deploy one backend SQL fix, and Russian users need VPN for Expo Push (geo-block).
+
+### Local build — exact command
+```
+cd .../mobile-native-parity
+export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.19.10-hotspot"
+export ANDROID_HOME="/c/Users/user/AppData/Local/Android/Sdk"
+export CMAKE_VERSION="3.31.6"
+bash android/gradlew -p android :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-watch-fs --no-daemon
+```
+Release buildType is signed with the **debug keystore** (Expo default) — installable, fine for testing. Needs an active **VPN** while resolving dependencies (Google Maven is blocked from RU — see below).
+
+### Build problems solved (took 22 build attempts)
+1. **ninja `build.ninja still dirty after 100 tries`** (CMake `CONFIGURE_DEPENDS` loop on Windows): added `-DCMAKE_SUPPRESS_REGENERATION=ON` to the CMake args of **all 4 native modules** (`react-native-screens`, `react-native-worklets`, `react-native-reanimated`, `expo-modules-core`) and the `:app` module.
+2. **`Filename longer than 260 characters` / `mkdir ... No such file or directory`** (Windows MAX_PATH): forced **CMake 3.31.6** (long-path-aware ninja; `LongPathsEnabled=1` already set in registry) for every native module. `worklets`/`reanimated` read `CMAKE_VERSION` env; `screens`/`expo-modules-core` were pinned via `version "3.31.6"` in their `build.gradle`; `:app` via an override appended to `android/app/build.gradle`.
+3. **`androidx.collection:collection:1.0.0` has no jar** (404 everywhere): `resolutionStrategy { force 'androidx.collection:collection:1.5.0' }` in `android/build.gradle` allprojects.
+4. **Google Maven (`dl.google.com`) blocked from Russia (404)** on androidx + AGP: solved by the user's **VPN** → official google works. (A local mirror / Aliyun mirror were explored but VPN is the clean answer. `--refresh-dependencies` POISONS the cache when google is blocked — do NOT use it without VPN.)
+
+### ⚠️ These build fixes live in GITIGNORED / ephemeral locations — they are LOST on `npm install` or `expo prebuild --clean`
+- Patches in `node_modules/{react-native-screens,react-native-worklets,react-native-reanimated,expo-modules-core}/android/build.gradle` and `node_modules/expo-modules-autolinking/android/expo-gradle-plugin/*/build.gradle.kts`.
+- Overrides in `android/build.gradle` (cmake version + suppress-regen + lint-disable + collection force) and `android/app/build.gradle` (long-path override). `/android` is gitignored.
+- `~/.m2local` mirror + `~/.m2local-init.gradle` init-script — only needed when google is blocked; with VPN they are NOT needed.
+- **Follow-up to make reproducible:** convert the node_modules patches to **patch-package**, and move the `android/` overrides into an Expo **config plugin** (so prebuild regenerates them).
+
+### FCM / push setup (done)
+- Firebase project **`splithub-mobile-61da2`** (Spark/free), Android app `ru.splithub.mobile`, App ID `1:304156935628:android:3740b5c75d157a0cb78969`.
+- `google-services.json` is in the project (gitignored) and `app.json` has `android.googleServicesFile`. `expo prebuild` copied it into `android/app/` and applied the `com.google.gms.google-services` plugin.
+- **FCM V1 service account key already uploaded to Expo** (project @alextsarev/splithub, uploaded Jun 6 14:20). Key file in project (gitignored): `splithub-mobile-61da2-firebase-adminsdk-fbsvc-2ffd99bc0c.json`.
+
+### Push chain — traced on device (TECNO BG6, local APK)
+1. FCM device token — ✅ (Firebase inits, permission granted).
+2. Expo push token (`exp.host/--/api/v2/push/getExpoPushToken`) — ✅ **only with VPN on the PHONE**. Without phone VPN it returns **403 Forbidden** (Expo runs on Google Cloud → geo-blocks RU IPs). Phone ping to Google/exp.host works (ICMP), but the HTTPS POST is WAF-blocked.
+3. Server `register_device` — **was failing**: `SQLSTATE[HY000]: General error: 1 near "ON": syntax error`. Root cause: `api/lib/push.php` used `INSERT ... ON CONFLICT(expo_token) DO UPDATE` (SQLite UPSERT, needs SQLite ≥ 3.24); the SprintHost shared SQLite is older. **FIXED** in `api/lib/push.php` (backend repo `codex/mobile-notifications-russian`): rewrote as `INSERT OR IGNORE` + `UPDATE`. **Needs deploy to splithub.ru** (safe process: `php -l` on server, backup, upload only `api/lib/push.php`, storefront smoke `send.php` → `{"ok":true}`).
+
+### ⚠️ Product conclusion (RU) — defer to a separate task
+**Expo Push Service is geo-blocked in Russia (403).** Even after the backend fix, real RU users without VPN will not register for push via Expo. For production push to a Russian audience, plan **RuStore Push (VK)** or a direct FCM server-send path, not Expo Push. (The design doc already anticipated a second Android push provider.)
+
+### Sound notifications (done, global)
+- `~/.claude/settings.json` hooks: `Notification`→attention beep, `Stop`→done beep, `StopFailure`→error double-beep, via `~/.claude/claude-notify.ps1`. Toggle with `sound on|off|test` (added `~/.claude` to PATH; `~/.claude/sound.cmd`). Mute flag file: `~/.claude/sound-disabled`.
+
+### Next steps (agreed order)
+1. (this) write handoff + commit/push both repos.
+2. Deploy `api/lib/push.php` fix to splithub.ru.
+3. Re-test push end to end on device (VPN on phone) — the installed `*-dbg.apk` still surfaces the raw error if needed.
+4. Then address the RU push-provider product decision.
 
 ## Repositories
 

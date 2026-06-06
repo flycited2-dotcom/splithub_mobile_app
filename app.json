@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "ru.splithub.mobile",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#F6A400",
