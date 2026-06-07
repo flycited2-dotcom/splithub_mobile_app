@@ -57,6 +57,15 @@ const priceProducts = [
   },
 ] as Product[];
 
+function baseFileSystem(): PriceListFileSystem {
+  return {
+    cacheDirectory: 'file:///cache/',
+    makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
+    readAsStringAsync: jest.fn().mockResolvedValue('base64'),
+    writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockedDownloadPriceList.mockImplementation(actualPriceListDownload.downloadPriceList);
@@ -105,33 +114,24 @@ test('asks for PDF or Excel and saves the selected price list without opening a 
   expect(openUrlSpy).not.toHaveBeenCalled();
   expect(alertSpy).toHaveBeenLastCalledWith(
     'Прайс сохранён',
-    'Файл splithub-price-2026-06-03.xls сохранён в выбранную папку телефона.',
+    'Файл splithub-price-2026-06-03.xls сохранён в папку «Загрузки».',
   );
 });
 
-test('creates an Excel price list and writes it to the selected phone folder', async () => {
-  const fileSystem: PriceListFileSystem = {
-    cacheDirectory: 'file:///cache/',
-    makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
-    readAsStringAsync: jest.fn().mockResolvedValue('base64-xls'),
-    writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
-    StorageAccessFramework: {
-      createFileAsync: jest.fn().mockResolvedValue('content://downloads/splithub-price-2026-06-03.xls'),
-      requestDirectoryPermissionsAsync: jest.fn().mockResolvedValue({
-        directoryUri: 'content://downloads',
-        granted: true,
-      }),
-      writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
-    },
-  };
+test('creates an Excel price list and saves it straight to the Downloads folder', async () => {
+  const fileSystem = baseFileSystem();
+  const downloadsSaver = jest
+    .fn()
+    .mockResolvedValue('content://media/external/downloads/splithub-price-2026-06-03.xls');
 
   await expect(actualPriceListDownload.downloadPriceList('excel', priceProducts, {
     fileSystem,
     now: () => new Date('2026-06-03T12:00:00Z'),
+    downloadsSaver,
   })).resolves.toEqual({
     fileName: 'splithub-price-2026-06-03.xls',
     savedToPhone: true,
-    uri: 'content://downloads/splithub-price-2026-06-03.xls',
+    uri: 'content://media/external/downloads/splithub-price-2026-06-03.xls',
   });
 
   expect(fileSystem.makeDirectoryAsync).toHaveBeenCalledWith(
@@ -142,28 +142,19 @@ test('creates an Excel price list and writes it to the selected phone folder', a
     'file:///cache/splithub-prices/splithub-price-2026-06-03.xls',
     expect.stringContaining('MDSAG-07HRDN8'),
   );
-  expect(fileSystem.StorageAccessFramework!.createFileAsync).toHaveBeenCalledWith(
-    'content://downloads',
+  // No folder picker: the generated file is handed straight to the Downloads saver.
+  expect(downloadsSaver).toHaveBeenCalledWith(
+    'file:///cache/splithub-prices/splithub-price-2026-06-03.xls',
     'splithub-price-2026-06-03.xls',
     'application/vnd.ms-excel',
   );
 });
 
-test('creates a PDF price list and writes it to the selected phone folder', async () => {
-  const fileSystem: PriceListFileSystem = {
-    cacheDirectory: 'file:///cache/',
-    makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
-    readAsStringAsync: jest.fn().mockResolvedValue('base64-pdf-from-cache'),
-    writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
-    StorageAccessFramework: {
-      createFileAsync: jest.fn().mockResolvedValue('content://downloads/splithub-price-2026-06-03.pdf'),
-      requestDirectoryPermissionsAsync: jest.fn().mockResolvedValue({
-        directoryUri: 'content://downloads',
-        granted: true,
-      }),
-      writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
-    },
-  };
+test('creates a PDF price list and saves it straight to the Downloads folder', async () => {
+  const fileSystem = baseFileSystem();
+  const downloadsSaver = jest
+    .fn()
+    .mockResolvedValue('content://media/external/downloads/splithub-price-2026-06-03.pdf');
   const pdfRenderer = {
     renderBase64: jest.fn().mockResolvedValue('base64-pdf'),
   };
@@ -172,48 +163,33 @@ test('creates a PDF price list and writes it to the selected phone folder', asyn
     fileSystem,
     now: () => new Date('2026-06-03T12:00:00Z'),
     pdfRenderer,
+    downloadsSaver,
   })).resolves.toEqual({
     fileName: 'splithub-price-2026-06-03.pdf',
     savedToPhone: true,
-    uri: 'content://downloads/splithub-price-2026-06-03.pdf',
+    uri: 'content://media/external/downloads/splithub-price-2026-06-03.pdf',
   });
 
   expect(pdfRenderer.renderBase64).toHaveBeenCalledWith(priceProducts, '2026-06-03');
-  expect(fileSystem.makeDirectoryAsync).toHaveBeenCalledWith(
-    'file:///cache/splithub-prices/',
-    { intermediates: true },
-  );
   expect(fileSystem.writeAsStringAsync).toHaveBeenCalledWith(
     'file:///cache/splithub-prices/splithub-price-2026-06-03.pdf',
     'base64-pdf',
     { encoding: 'base64' },
   );
-  expect(fileSystem.readAsStringAsync).toHaveBeenCalledWith(
+  expect(downloadsSaver).toHaveBeenCalledWith(
     'file:///cache/splithub-prices/splithub-price-2026-06-03.pdf',
-    { encoding: 'base64' },
-  );
-  expect(fileSystem.StorageAccessFramework!.createFileAsync).toHaveBeenCalledWith(
-    'content://downloads',
     'splithub-price-2026-06-03.pdf',
     'application/pdf',
   );
 });
 
-test('asks the user to choose a folder when phone storage access is unavailable', async () => {
-  const fileSystem: PriceListFileSystem = {
-    cacheDirectory: 'file:///cache/',
-    makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
-    readAsStringAsync: jest.fn().mockResolvedValue('base64-xls'),
-    writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
-    StorageAccessFramework: {
-      createFileAsync: jest.fn(),
-      requestDirectoryPermissionsAsync: jest.fn().mockResolvedValue({ granted: false }),
-      writeAsStringAsync: jest.fn(),
-    },
-  };
+test('surfaces an error when saving to the Downloads folder fails', async () => {
+  const fileSystem = baseFileSystem();
+  const downloadsSaver = jest.fn().mockRejectedValue(new Error('Не удалось сохранить в Загрузки'));
 
   await expect(actualPriceListDownload.downloadPriceList('excel', priceProducts, {
     fileSystem,
     now: () => new Date('2026-06-03T12:00:00Z'),
-  })).rejects.toThrow('Выберите папку телефона для сохранения прайса');
+    downloadsSaver,
+  })).rejects.toThrow('Не удалось сохранить в Загрузки');
 });

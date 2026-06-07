@@ -22,6 +22,10 @@ jest.mock('../src/features/cart/cart-context', () => ({
   useCart: jest.fn(),
 }));
 
+jest.mock('../src/features/notifications/notifications-context', () => ({
+  useNotifications: () => ({ notifications: [], unreadCount: 0, markAllRead: jest.fn(), refresh: jest.fn() }),
+}));
+
 const mockedUseCart = jest.mocked(useCart);
 
 function mockCart(itemsCount: number) {

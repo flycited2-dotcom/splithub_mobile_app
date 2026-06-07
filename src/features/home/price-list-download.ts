@@ -1,3 +1,4 @@
+import { NativeModules } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
 import { Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
@@ -14,29 +15,26 @@ export type PriceListDownloadResult = {
   savedToPhone: boolean;
 };
 
-type StorageAccess = {
-  createFileAsync: typeof FileSystem.StorageAccessFramework.createFileAsync;
-  getUriForDirectoryInRoot?: typeof FileSystem.StorageAccessFramework.getUriForDirectoryInRoot;
-  requestDirectoryPermissionsAsync: typeof FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync;
-  writeAsStringAsync: typeof FileSystem.StorageAccessFramework.writeAsStringAsync;
-};
-
 export type PriceListFileSystem = {
   cacheDirectory: string | null;
   makeDirectoryAsync: typeof FileSystem.makeDirectoryAsync;
   readAsStringAsync: typeof FileSystem.readAsStringAsync;
   writeAsStringAsync: typeof FileSystem.writeAsStringAsync;
-  StorageAccessFramework?: StorageAccess;
 };
 
 type PriceListPdfRenderer = {
   renderBase64: (products: Product[], today: string) => Promise<string>;
 };
 
+// Saves a locally generated file into the public Downloads folder and returns
+// its content URI. Injected so tests don't touch the native MediaStore module.
+export type DownloadsSaver = (localUri: string, fileName: string, mimeType: string) => Promise<string>;
+
 type DownloadOptions = {
   fileSystem?: PriceListFileSystem;
   now?: () => Date;
   pdfRenderer?: PriceListPdfRenderer;
+  downloadsSaver?: DownloadsSaver;
 };
 
 type GeneratedPriceListFile = {
@@ -73,7 +71,7 @@ export async function downloadPriceList(
     ? await createPdfPriceList(products, today, fileSystem, options.pdfRenderer ?? pdfRenderer)
     : await createExcelPriceList(products, today, fileSystem);
 
-  return saveToPhoneFolder(generated, fileSystem);
+  return saveToDownloads(generated, options.downloadsSaver ?? mediaStoreDownloadsSaver);
 }
 
 async function createExcelPriceList(
@@ -126,25 +124,25 @@ async function createPdfPriceList(
   };
 }
 
-async function saveToPhoneFolder(
+type DownloadsNativeModule = {
+  saveToDownloads: (srcPath: string, fileName: string, mimeType: string) => Promise<string>;
+};
+
+// Save straight into the system Downloads folder (MediaStore) with no folder
+// picker, like a regular Android download. Backed by the in-app native module.
+const mediaStoreDownloadsSaver: DownloadsSaver = async (localUri, fileName, mimeType) => {
+  const native = (NativeModules as { SplitHubDownloads?: DownloadsNativeModule }).SplitHubDownloads;
+  if (!native?.saveToDownloads) {
+    throw new Error('Сохранение в «Загрузки» недоступно на этом устройстве');
+  }
+  return native.saveToDownloads(localUri, fileName, mimeType);
+};
+
+async function saveToDownloads(
   file: GeneratedPriceListFile,
-  fileSystem: PriceListFileSystem,
+  saver: DownloadsSaver,
 ): Promise<PriceListDownloadResult> {
-  const storage = fileSystem.StorageAccessFramework;
-  if (!storage) {
-    throw new Error('Сохранение в папку телефона недоступно на этом устройстве');
-  }
-
-  const initialUri = storage.getUriForDirectoryInRoot?.('Download') ?? undefined;
-  const permissions = await storage.requestDirectoryPermissionsAsync(initialUri);
-  if (!permissions.granted) {
-    throw new Error('Выберите папку телефона для сохранения прайса');
-  }
-
-  const base64 = await fileSystem.readAsStringAsync(file.uri, { encoding: 'base64' });
-  const targetUri = await storage.createFileAsync(permissions.directoryUri, file.fileName, file.mimeType);
-  await storage.writeAsStringAsync(targetUri, base64, { encoding: 'base64' });
-
+  const targetUri = await saver(file.uri, file.fileName, file.mimeType);
   return {
     fileName: file.fileName,
     savedToPhone: true,

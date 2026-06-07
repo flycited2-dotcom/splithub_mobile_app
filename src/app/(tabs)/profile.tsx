@@ -129,7 +129,7 @@ export default function ProfileScreen() {
     setPriceDownloading(true);
     try {
       const file = await downloadPriceList(format, products ?? []);
-      Alert.alert('Прайс сохранён', `Файл ${file.fileName} сохранён в выбранную папку телефона.`);
+      Alert.alert('Прайс сохранён', `Файл ${file.fileName} сохранён в папку «Загрузки».`);
     } catch (error) {
       Alert.alert('Прайс не скачался', getPriceListDownloadErrorMessage(error));
     } finally {

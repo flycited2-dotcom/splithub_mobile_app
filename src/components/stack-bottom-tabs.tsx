@@ -4,12 +4,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../features/cart/cart-context';
+import { useNotifications } from '../features/notifications/notifications-context';
 import { colors, spacing } from '../lib/theme';
 
 type TabKey = 'catalog' | 'home' | 'cart' | 'orders' | 'profile';
 
 const tabs = [
-  { href: '/catalog', icon: 'grid-view', key: 'catalog', label: 'Каталог' },
+  { href: '/catalog?mode=flat', icon: 'grid-view', key: 'catalog', label: 'Каталог' },
   { href: '/', icon: 'home', key: 'home', label: 'Главная' },
   { href: '/cart', icon: 'shopping-cart', key: 'cart', label: 'Корзина' },
   { href: '/orders', icon: 'receipt-long', key: 'orders', label: 'Заказы' },
@@ -23,13 +24,15 @@ type Props = {
 export function StackBottomTabs({ active }: Props) {
   const insets = useSafeAreaInsets();
   const { itemsCount } = useCart();
+  const { unreadCount } = useNotifications();
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + spacing.sm }]}>
       {tabs.map((tab) => {
         const isActive = active === tab.key;
         const color = isActive ? colors.accent : '#8A8A8A';
-        const badge = tab.key === 'cart' && itemsCount > 0 ? itemsCount : 0;
+        const badgeSource = tab.key === 'cart' ? itemsCount : tab.key === 'profile' ? unreadCount : 0;
+        const badge = badgeSource > 0 ? badgeSource : 0;
 
         return (
           <Pressable
