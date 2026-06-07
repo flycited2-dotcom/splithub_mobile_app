@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-gesture-handler/android/build.gradle b/node_modules/react-native-gesture-handler/android/build.gradle
+index 6348d17..8bf8384 100644
+--- a/node_modules/react-native-gesture-handler/android/build.gradle
++++ b/node_modules/react-native-gesture-handler/android/build.gradle
+@@ -154,7 +154,8 @@ android {
+             externalNativeBuild {
+                 cmake {
+                     cppFlags "-O2", "-frtti", "-fexceptions", "-Wall", "-Werror", "-std=c++20", "-DANDROID"
+-                    arguments "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}",
++                    arguments "-DCMAKE_SUPPRESS_REGENERATION=ON",
++                            "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}",
+                             "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
+                             "-DANDROID_STL=c++_shared",
+                             "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+@@ -172,6 +173,7 @@ android {
+     if (isNewArchitectureEnabled()) {
+         externalNativeBuild {
+             cmake {
++                version "3.31.6"
+                 path "src/main/jni/CMakeLists.txt"
+             }
+         }
