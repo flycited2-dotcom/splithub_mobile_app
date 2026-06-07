@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../../features/cart/cart-context';
 import { useCatalog } from '../../features/catalog/catalog-context';
+import { productTitle } from '../../features/catalog/product-title';
 import { orderStatusBadgeStyle, orderStatusLabel } from '../../features/orders/order-status';
 import { cancelOrder, loadOrder, repeatOrder } from '../../features/orders/orders-repository';
 import type { Order } from '../../features/orders/types';
@@ -17,6 +18,10 @@ export default function OrderDetailsScreen() {
   const orderId = Number(params.id);
   const { snapshot } = useCatalog();
   const { replaceItems } = useCart();
+  const productsById = useMemo(
+    () => new Map((snapshot?.products ?? []).map((product) => [product.id, product])),
+    [snapshot],
+  );
   const [order, setOrder] = useState<Order | null>(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -78,12 +83,16 @@ export default function OrderDetailsScreen() {
               </Text>
             </View>
             <Text style={styles.total}>Итого: {formatPrice(order.total)}</Text>
-            {order.items?.map((item) => (
-              <View key={`${item.product_id}-${item.product_name}`} style={styles.card}>
-                <Text style={styles.itemName}>{item.product_name}</Text>
-                <Text>{item.qty} × {formatPrice(item.price)}</Text>
-              </View>
-            ))}
+            {order.items?.map((item) => {
+              const product = productsById.get(item.product_id);
+              const title = product ? productTitle(product) : item.product_name;
+              return (
+                <View key={`${item.product_id}-${item.product_name}`} style={styles.card}>
+                  <Text style={styles.itemName}>{title}</Text>
+                  <Text>{item.qty} × {formatPrice(item.price)}</Text>
+                </View>
+              );
+            })}
             <Pressable onPress={() => void repeat()} style={styles.primary}>
               <Text style={styles.primaryText}>Повторить заказ</Text>
             </Pressable>

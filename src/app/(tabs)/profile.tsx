@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,7 +27,7 @@ import { colors, spacing } from '../../lib/theme';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, loading, logout } = useSession();
-  const { snapshot } = useCatalog();
+  const { snapshot, loading: catalogLoading, refresh: refreshCatalog } = useCatalog();
   const { favoriteIds } = useFavorites();
   const products = snapshot?.products;
   const [expoToken, setExpoToken] = useState<string | null>(null);
@@ -125,7 +125,16 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={[styles.screen, tabScreenPadding(insets)]}>
+    <ScrollView
+      contentContainerStyle={[styles.screen, tabScreenPadding(insets)]}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={refreshCatalog}
+          refreshing={catalogLoading}
+          tintColor={colors.accent}
+        />
+      }>
       <Text style={styles.title}>{user.name}</Text>
       <Text style={styles.muted}>{user.phone}</Text>
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}
@@ -181,7 +190,7 @@ export default function ProfileScreen() {
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

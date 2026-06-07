@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../../features/cart/cart-context';
 import { upsellProducts } from '../../features/cart/upsell-products';
 import { useCatalog } from '../../features/catalog/catalog-context';
+import { productTitle } from '../../features/catalog/product-title';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
@@ -17,6 +18,10 @@ export default function CartScreen() {
   const installerKit = useMemo(
     () => upsellProducts(items, snapshot?.products ?? []),
     [items, snapshot],
+  );
+  const productsById = useMemo(
+    () => new Map((snapshot?.products ?? []).map((product) => [product.id, product])),
+    [snapshot],
   );
 
   async function submit() {
@@ -44,10 +49,13 @@ export default function CartScreen() {
       <Text style={styles.title}>Корзина</Text>
       {!items.length ? <Text style={styles.empty}>Корзина пока пуста</Text> : null}
 
-      {items.map((item) => (
+      {items.map((item) => {
+        const product = productsById.get(item.id);
+        const title = product ? productTitle(product) : item.name;
+        return (
         <View key={item.id} style={styles.card}>
           <View style={styles.itemInfo}>
-            <Text style={styles.itemTitle}>{item.name}</Text>
+            <Text style={styles.itemTitle}>{title}</Text>
             <Text style={styles.itemMeta}>{formatPrice(item.price)} / шт.</Text>
             <Text style={styles.price}>{formatPrice(item.price * item.qty)}</Text>
           </View>
@@ -66,7 +74,8 @@ export default function CartScreen() {
             </Pressable>
           </View>
         </View>
-      ))}
+        );
+      })}
 
       {installerKit.length ? (
         <View style={styles.upsell}>

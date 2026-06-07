@@ -10,6 +10,7 @@ import {
 
 import { api } from '../../lib/api';
 import { cartStorage } from '../../lib/storage';
+import { productTitle } from '../catalog/product-title';
 import type { Product } from '../catalog/types';
 import { checkoutPayload } from './checkout-payload';
 import {
@@ -77,7 +78,7 @@ export function CartProvider({ children }: PropsWithChildren) {
       checkingOut,
       addProduct: (product, qty = 1) => {
         setCheckoutError(null);
-        dispatch({ type: 'add', item: { id: product.id, name: product.model, price: product.price, qty } });
+        dispatch({ type: 'add', item: { id: product.id, name: productTitle(product), price: product.price, qty } });
       },
       setQty: (id, qty) => dispatch({ type: 'setQty', id, qty }),
       replaceItems: (nextItems) => dispatch({ type: 'replace', items: nextItems }),
