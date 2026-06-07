@@ -32,11 +32,13 @@ export default function HomeScreen() {
   );
 
   function openCatalog(filter?: string) {
+    // Use navigate (not push) so switching to the Catalog tab does not stack
+    // duplicate screens; back then returns to Home instead of exiting the app.
     if (!filter) {
-      router.push({ pathname: '/catalog', params: { mode: 'flat' } } as never);
+      router.navigate({ pathname: '/catalog', params: { filter: '', mode: 'flat' } } as never);
       return;
     }
-    router.push({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);
+    router.navigate({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);
   }
 
   function showPriceListFormatPicker() {

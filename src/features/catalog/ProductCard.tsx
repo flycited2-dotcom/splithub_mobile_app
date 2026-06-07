@@ -6,6 +6,7 @@ import { Link } from 'expo-router';
 
 import { useFavorites } from '../favorites/favorites-context';
 import { colors, formatPrice, spacing } from '../../lib/theme';
+import { stockBadge } from './stock-badge';
 import type { Product } from './types';
 
 const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
@@ -19,6 +20,7 @@ type ProductCardProps = {
 export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite(product.id);
+  const badge = stockBadge(product);
 
   return (
     <View style={styles.card}>
@@ -46,9 +48,9 @@ export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onA
           <Text numberOfLines={1} style={styles.brand}>{product.brand}</Text>
           <Text numberOfLines={2} style={styles.model}>{product.model}</Text>
           {product.descShort ? <Text numberOfLines={2} style={styles.description}>{product.descShort}</Text> : null}
-          <Text style={[styles.stock, product.stock !== 'in_stock' && styles.stockMuted]}>
-            {product.stockLabel}
-          </Text>
+          <View style={[styles.stockBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
+            <Text numberOfLines={1} style={[styles.stockBadgeText, { color: badge.color }]}>{badge.label}</Text>
+          </View>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
         </Pressable>
       </Link>
@@ -107,13 +109,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     minHeight: 28,
   },
-  stock: {
-    color: colors.success,
-    fontSize: 11,
-    fontWeight: '700',
+  stockBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    borderWidth: 1,
+    elevation: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: 1, width: 0 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
   },
-  stockMuted: {
-    color: colors.muted,
+  stockBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
   },
   price: {
     color: colors.accentDark,

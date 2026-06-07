@@ -10,6 +10,7 @@ import { useSession } from '../src/features/session/session-context';
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
+    navigate: jest.fn(),
   },
 }));
 
@@ -28,6 +29,7 @@ jest.mock('../src/features/catalog/catalog-context', () => ({
 const mockedUseSession = jest.mocked(useSession);
 const mockedUseCatalog = jest.mocked(useCatalog);
 const mockedRouterPush = jest.mocked(router.push);
+const mockedRouterNavigate = jest.mocked(router.navigate);
 
 function pressableStyleForText(node: ReactTestInstance) {
   let current: ReactTestInstance | null = node;
@@ -52,6 +54,7 @@ function hasAncestor(node: ReactTestInstance, ancestor: ReactTestInstance) {
 
 beforeEach(() => {
   mockedRouterPush.mockClear();
+  mockedRouterNavigate.mockClear();
   mockedUseCatalog.mockReturnValue({
     error: null,
     loading: true,
@@ -111,9 +114,9 @@ test('opens the full catalog in flat mode from the home screen', () => {
 
   fireEvent.press(getByText(/Весь каталог/));
 
-  expect(mockedRouterPush).toHaveBeenCalledWith({
+  expect(mockedRouterNavigate).toHaveBeenCalledWith({
     pathname: '/catalog',
-    params: { mode: 'flat' },
+    params: { filter: '', mode: 'flat' },
   });
 });
 

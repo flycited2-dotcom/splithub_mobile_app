@@ -8,6 +8,7 @@ import { StackBottomTabs } from '../../components/stack-bottom-tabs';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productShareData, shareUrls } from '../../features/catalog/share-product';
+import { stockBadge } from '../../features/catalog/stock-badge';
 import { useCart } from '../../features/cart/cart-context';
 import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
@@ -32,6 +33,7 @@ export default function ProductDetailsScreen() {
 
   const selectedProduct = product;
   const cartQty = quantityByProductId[selectedProduct.id] ?? 0;
+  const badge = stockBadge(product);
   const urls = shareUrls(selectedProduct);
   const specs = [
     product.btu ? `Мощность: ${product.btu} BTU` : '',
@@ -57,9 +59,9 @@ export default function ProductDetailsScreen() {
         <Text style={styles.brand}>{product.brand}</Text>
         <Text style={styles.title}>{product.model}</Text>
         <Text style={styles.description}>{product.descShort}</Text>
-        <Text style={[styles.stock, product.stock !== 'in_stock' && styles.stockMuted]}>
-          {product.stockLabel}
-        </Text>
+        <View style={[styles.stockBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
+          <Text style={[styles.stockBadgeText, { color: badge.color }]}>{badge.label}</Text>
+        </View>
         <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
         <View style={styles.priceRow}>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
@@ -144,12 +146,16 @@ const styles = StyleSheet.create({
   description: {
     color: colors.muted,
   },
-  stock: {
-    color: colors.success,
-    fontWeight: '800',
+  stockBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
-  stockMuted: {
-    color: colors.muted,
+  stockBadgeText: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   image: {
     backgroundColor: colors.card,

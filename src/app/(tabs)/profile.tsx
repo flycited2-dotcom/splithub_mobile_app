@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { useFavorites } from '../../features/favorites/favorites-context';
+import { useNotifications } from '../../features/notifications/notifications-context';
 import { countPurchasedOrders } from '../../features/orders/order-status';
 import { listOrders } from '../../features/orders/orders-repository';
 import { useSession } from '../../features/session/session-context';
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const { user, loading, logout } = useSession();
   const { snapshot, loading: catalogLoading, refresh: refreshCatalog } = useCatalog();
   const { favoriteIds } = useFavorites();
+  const { unreadCount } = useNotifications();
   const products = snapshot?.products;
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
@@ -179,7 +181,18 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Уведомления</Text>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>Уведомления</Text>
+          <Pressable onPress={() => router.push('/notifications')} style={styles.openNotifications}>
+            <MaterialIcons color={colors.accentDark} name="notifications" size={18} />
+            <Text style={styles.openNotificationsText}>Открыть</Text>
+            {unreadCount > 0 ? (
+              <View style={styles.notificationsBadge}>
+                <Text style={styles.notificationsBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
         <View style={styles.preference}>
           <Text style={styles.preferenceLabel}>Статусы заказов</Text>
           <Switch
@@ -292,8 +305,41 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.md,
   },
+  cardHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   cardTitle: {
     color: colors.text,
+    fontWeight: '800',
+  },
+  openNotifications: {
+    alignItems: 'center',
+    backgroundColor: '#FFF1E0',
+    borderColor: '#F0A329',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  openNotificationsText: {
+    color: colors.accentDark,
+    fontWeight: '800',
+  },
+  notificationsBadge: {
+    alignItems: 'center',
+    backgroundColor: '#EF4444',
+    borderRadius: 999,
+    justifyContent: 'center',
+    minWidth: 18,
+    paddingHorizontal: 5,
+  },
+  notificationsBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: '800',
   },
   preference: {

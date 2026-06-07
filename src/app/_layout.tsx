@@ -9,6 +9,7 @@ import { CartProvider } from '../features/cart/cart-context';
 import { CatalogProvider } from '../features/catalog/catalog-context';
 import { FavoritesProvider } from '../features/favorites/favorites-context';
 import { notificationTarget } from '../features/notifications/notification-router';
+import { NotificationsProvider } from '../features/notifications/notifications-context';
 import { SessionProvider } from '../features/session/session-context';
 
 Notifications.setNotificationHandler({
@@ -42,11 +43,13 @@ export default function RootLayout() {
         <CatalogProvider>
           <CartProvider>
             <FavoritesProvider>
-              <StatusBar style="dark" />
-              <NotificationNavigation />
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              </Stack>
+              <NotificationsProvider>
+                <StatusBar style="dark" />
+                <NotificationNavigation />
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                </Stack>
+              </NotificationsProvider>
             </FavoritesProvider>
           </CartProvider>
         </CatalogProvider>
