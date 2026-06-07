@@ -1,4 +1,6 @@
 import {
+  countPurchasedOrders,
+  isPurchasedOrder,
   orderStatusBadgeStyle,
   orderStatusColors,
   orderStatusLabel,
@@ -28,5 +30,30 @@ describe('order status', () => {
 
   it('covers all statuses present in labels with colors', () => {
     expect(Object.keys(orderStatusColors).sort()).toEqual(Object.keys(orderStatusLabels).sort());
+  });
+});
+
+describe('purchased orders', () => {
+  it('treats confirmed/in_progress/shipped/completed as real purchases', () => {
+    expect(isPurchasedOrder('confirmed')).toBe(true);
+    expect(isPurchasedOrder('in_progress')).toBe(true);
+    expect(isPurchasedOrder('shipped')).toBe(true);
+    expect(isPurchasedOrder('completed')).toBe(true);
+  });
+
+  it('excludes freshly added (new) and cancelled orders', () => {
+    expect(isPurchasedOrder('new')).toBe(false);
+    expect(isPurchasedOrder('cancelled')).toBe(false);
+  });
+
+  it('counts only real purchases in a mixed list', () => {
+    const orders: { status: OrderStatus }[] = [
+      { status: 'new' },
+      { status: 'cancelled' },
+      { status: 'confirmed' },
+      { status: 'shipped' },
+      { status: 'completed' },
+    ];
+    expect(countPurchasedOrders(orders)).toBe(3);
   });
 });

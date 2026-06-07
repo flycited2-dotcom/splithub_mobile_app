@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, router } from 'expo-router';
@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { useFavorites } from '../../features/favorites/favorites-context';
+import { countPurchasedOrders } from '../../features/orders/order-status';
+import { listOrders } from '../../features/orders/orders-repository';
 import { useSession } from '../../features/session/session-context';
 import {
   defaultNotificationPreferences,
@@ -34,6 +36,30 @@ export default function ProfileScreen() {
   const [notificationStatus, setNotificationStatus] = useState('');
   const [priceDownloading, setPriceDownloading] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultNotificationPreferences);
+  const [purchasedCount, setPurchasedCount] = useState(0);
+
+  // "Мои покупки" counts real purchases only (excludes cancelled and freshly added "new" orders).
+  const loadPurchasedCount = useCallback(async () => {
+    if (!user) {
+      setPurchasedCount(0);
+      return;
+    }
+    try {
+      const { orders } = await listOrders();
+      setPurchasedCount(countPurchasedOrders(orders));
+    } catch {
+      // keep the previous count on a transient failure
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void loadPurchasedCount();
+  }, [loadPurchasedCount]);
+
+  const refreshProfile = useCallback(() => {
+    void refreshCatalog();
+    void loadPurchasedCount();
+  }, [refreshCatalog, loadPurchasedCount]);
 
   useEffect(() => {
     let active = true;
@@ -130,7 +156,7 @@ export default function ProfileScreen() {
       refreshControl={
         <RefreshControl
           colors={[colors.accent]}
-          onRefresh={refreshCatalog}
+          onRefresh={refreshProfile}
           refreshing={catalogLoading}
           tintColor={colors.accent}
         />
@@ -141,7 +167,9 @@ export default function ProfileScreen() {
       <View style={styles.tilesRow}>
         <Pressable onPress={() => router.push('/orders')} style={[styles.tile, styles.tileOrders]}>
           <MaterialIcons color={colors.accentDark} name="receipt-long" size={28} />
-          <Text style={[styles.tileLabel, styles.tileLabelOrders]}>Мои покупки</Text>
+          <Text style={[styles.tileLabel, styles.tileLabelOrders]}>
+            Мои покупки{purchasedCount ? ` (${purchasedCount})` : ''}
+          </Text>
         </Pressable>
         <Pressable onPress={() => router.push('/favorites')} style={[styles.tile, styles.tileFav]}>
           <MaterialIcons color="#EF4444" name="favorite" size={28} />

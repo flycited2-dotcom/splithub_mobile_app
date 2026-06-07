@@ -56,3 +56,16 @@ export function orderStatusLabel(status: OrderStatus): string {
 export function orderStatusBadgeStyle(status: OrderStatus): OrderStatusBadgeStyle {
   return orderStatusColors[status] ?? orderStatusColors.new;
 }
+
+// "Мои покупки" counts real purchases only: everything except cancelled orders and
+// freshly added ones still awaiting confirmation ("new"). Confirmed/in_progress/shipped/
+// completed all count, because the customer has committed to the purchase.
+const NON_PURCHASE_STATUSES: ReadonlySet<OrderStatus> = new Set<OrderStatus>(['new', 'cancelled']);
+
+export function isPurchasedOrder(status: OrderStatus): boolean {
+  return !NON_PURCHASE_STATUSES.has(status);
+}
+
+export function countPurchasedOrders(orders: readonly { status: OrderStatus }[]): number {
+  return orders.filter((order) => isPurchasedOrder(order.status)).length;
+}
