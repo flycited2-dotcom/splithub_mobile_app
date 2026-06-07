@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-worklets/android/build.gradle b/node_modules/react-native-worklets/android/build.gradle
-index e189e1c..59cc03b 100644
+index e189e1c..b53870b 100644
 --- a/node_modules/react-native-worklets/android/build.gradle
 +++ b/node_modules/react-native-worklets/android/build.gradle
 @@ -215,7 +215,8 @@ android {
@@ -12,3 +12,17 @@ index e189e1c..59cc03b 100644
                          "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
                          "-DANDROID_TOOLCHAIN=clang",
                          "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
+@@ -238,6 +239,13 @@ android {
+         cmake {
+             version = System.getenv("CMAKE_VERSION") ?: "3.22.1"
+             path "CMakeLists.txt"
++            // Windows MAX_PATH workaround: the default .cxx dir is nested very deep, and
++            // object paths mirror the absolute source path, pushing the full path past 260
++            // chars (ninja mkdir fails). Relocate the native build dir to a short root.
++            // Only on Windows; other OSes have no path-length limit and keep the default.
++            if (System.getProperty("os.name").toLowerCase().contains("win")) {
++                buildStagingDirectory "C:/wkx"
++            }
+         }
+     }
+     buildTypes {
