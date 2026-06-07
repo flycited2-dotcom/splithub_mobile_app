@@ -3,53 +3,12 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { orderStatusColors, orderStatusLabels } from '../../features/orders/order-status';
 import { listOrders } from '../../features/orders/orders-repository';
-import type { Order, OrderStatus } from '../../features/orders/types';
+import type { Order } from '../../features/orders/types';
 import { useSession } from '../../features/session/session-context';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
-
-const statusLabels: Record<OrderStatus, string> = {
-  new: 'Новый',
-  confirmed: 'Подтверждён',
-  in_progress: 'В работе',
-  shipped: 'Отгружен',
-  completed: 'Выполнен',
-  cancelled: 'Отменён',
-};
-
-const statusColors: Record<OrderStatus, { backgroundColor: string; borderColor: string; color: string }> = {
-  new: {
-    backgroundColor: '#DBEAFE',
-    borderColor: '#93C5FD',
-    color: '#1D4ED8',
-  },
-  confirmed: {
-    backgroundColor: '#FFEDD5',
-    borderColor: '#FDBA74',
-    color: '#C2410C',
-  },
-  in_progress: {
-    backgroundColor: '#FFEDD5',
-    borderColor: '#FDBA74',
-    color: '#C2410C',
-  },
-  shipped: {
-    backgroundColor: '#FFEDD5',
-    borderColor: '#FDBA74',
-    color: '#C2410C',
-  },
-  completed: {
-    backgroundColor: '#DCFCE7',
-    borderColor: '#22C55E',
-    color: '#15803D',
-  },
-  cancelled: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#FCA5A5',
-    color: '#B91C1C',
-  },
-};
 
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
@@ -135,7 +94,7 @@ export default function OrdersScreen() {
           </View>
           <View style={styles.right}>
             <Text style={styles.price}>{formatPrice(order.total)}</Text>
-            <Text style={[styles.status, statusColors[order.status]]}>{statusLabels[order.status]}</Text>
+            <Text style={[styles.status, orderStatusColors[order.status]]}>{orderStatusLabels[order.status]}</Text>
           </View>
         </Pressable>
       ))}

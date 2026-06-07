@@ -8,21 +8,20 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { StackBottomTabs } from '../components/stack-bottom-tabs';
-import { useCart } from '../features/cart/cart-context';
-import { showAddedToCartFeedback } from '../features/cart/cart-feedback';
-import { useCatalog } from '../features/catalog/catalog-context';
-import { catalogRows, type CatalogRow } from '../features/catalog/catalog-rows';
-import { filterProducts } from '../features/catalog/filter-products';
-import { groupProducts } from '../features/catalog/group-products';
-import { ProductCard } from '../features/catalog/ProductCard';
-import { quickFilters } from '../features/catalog/quick-filters';
-import type { Product } from '../features/catalog/types';
-import { stackScreenPadding } from '../lib/safe-area';
-import { colors, spacing } from '../lib/theme';
+import { useCart } from '../../features/cart/cart-context';
+import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
+import { useCatalog } from '../../features/catalog/catalog-context';
+import { catalogRows, type CatalogRow } from '../../features/catalog/catalog-rows';
+import { filterProducts } from '../../features/catalog/filter-products';
+import { groupProducts } from '../../features/catalog/group-products';
+import { ProductCard } from '../../features/catalog/ProductCard';
+import { quickFilters } from '../../features/catalog/quick-filters';
+import type { Product } from '../../features/catalog/types';
+import { stackScreenPadding } from '../../lib/safe-area';
+import { colors, spacing } from '../../lib/theme';
 
 export default function CatalogScreen() {
   const params = useLocalSearchParams<{ filter?: string; mode?: string }>();
@@ -93,8 +92,7 @@ export default function CatalogScreen() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: filterLabel ?? 'Весь каталог' }} />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.title}>{filterLabel ?? 'Весь каталог'}</Text>
         <Text style={styles.subtitle}>
           {flatMode ? 'Подходящие товары' : 'Каталог по брендам и сериям'}
@@ -147,7 +145,6 @@ export default function CatalogScreen() {
           windowSize={7}
         />
       )}
-      <StackBottomTabs active="home" />
     </View>
   );
 }

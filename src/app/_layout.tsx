@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { CartProvider } from '../features/cart/cart-context';
 import { CatalogProvider } from '../features/catalog/catalog-context';
+import { FavoritesProvider } from '../features/favorites/favorites-context';
 import { notificationTarget } from '../features/notifications/notification-router';
 import { SessionProvider } from '../features/session/session-context';
 
@@ -40,11 +41,13 @@ export default function RootLayout() {
       <SessionProvider>
         <CatalogProvider>
           <CartProvider>
-            <StatusBar style="dark" />
-            <NotificationNavigation />
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
+            <FavoritesProvider>
+              <StatusBar style="dark" />
+              <NotificationNavigation />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              </Stack>
+            </FavoritesProvider>
           </CartProvider>
         </CatalogProvider>
       </SessionProvider>

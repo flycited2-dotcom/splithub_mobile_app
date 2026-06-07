@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../../features/cart/cart-context';
 import { useCatalog } from '../../features/catalog/catalog-context';
+import { orderStatusBadgeStyle, orderStatusLabel } from '../../features/orders/order-status';
 import { cancelOrder, loadOrder, repeatOrder } from '../../features/orders/orders-repository';
 import type { Order } from '../../features/orders/types';
 import { stackScreenPadding } from '../../lib/safe-area';
@@ -70,7 +71,12 @@ export default function OrderDetailsScreen() {
         {order ? (
           <>
             <Text style={styles.title}>Заказ SH-{String(order.id).padStart(5, '0')}</Text>
-            <Text style={styles.muted}>Статус: {order.status}</Text>
+            <View style={styles.statusRow}>
+              <Text style={styles.muted}>Статус:</Text>
+              <Text style={[styles.statusBadge, orderStatusBadgeStyle(order.status)]}>
+                {orderStatusLabel(order.status)}
+              </Text>
+            </View>
             <Text style={styles.total}>Итого: {formatPrice(order.total)}</Text>
             {order.items?.map((item) => (
               <View key={`${item.product_id}-${item.product_name}`} style={styles.card}>
@@ -118,6 +124,20 @@ const styles = StyleSheet.create({
   },
   muted: {
     color: colors.muted,
+  },
+  statusRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  statusBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    fontSize: 13,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   total: {
     color: colors.accentDark,

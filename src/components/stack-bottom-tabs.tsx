@@ -6,9 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../features/cart/cart-context';
 import { colors, spacing } from '../lib/theme';
 
-type TabKey = 'home' | 'cart' | 'orders' | 'profile';
+type TabKey = 'catalog' | 'home' | 'cart' | 'orders' | 'profile';
 
 const tabs = [
+  { href: '/catalog', icon: 'grid-view', key: 'catalog', label: 'Каталог' },
   { href: '/', icon: 'home', key: 'home', label: 'Главная' },
   { href: '/cart', icon: 'shopping-cart', key: 'cart', label: 'Корзина' },
   { href: '/orders', icon: 'receipt-long', key: 'orders', label: 'Заказы' },

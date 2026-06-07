@@ -8,7 +8,14 @@ export default function TabLayout() {
   const { itemsCount } = useCart();
 
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent }}>
+    <Tabs initialRouteName="index" screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent }}>
+      <Tabs.Screen
+        name="catalog"
+        options={{
+          title: 'Каталог',
+          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="grid-view" size={size} />,
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{

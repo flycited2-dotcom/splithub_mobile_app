@@ -14,6 +14,19 @@ jest.mock('expo-image', () => {
   return { Image };
 });
 
+jest.mock('@expo/vector-icons/MaterialIcons', () => {
+  const { Text } = require('react-native');
+  return ({ name }: { name: string }) => <Text>{name}</Text>;
+});
+
+jest.mock('../src/features/favorites/favorites-context', () => ({
+  useFavorites: () => ({
+    favoriteIds: [],
+    isFavorite: () => false,
+    toggleFavorite: jest.fn(),
+  }),
+}));
+
 const product: Product = {
   benefits: [],
   brand: 'MDV',

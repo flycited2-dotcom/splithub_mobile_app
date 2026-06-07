@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '../../features/catalog/catalog-context';
+import { useFavorites } from '../../features/favorites/favorites-context';
 import { useSession } from '../../features/session/session-context';
 import {
   defaultNotificationPreferences,
@@ -26,6 +28,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, loading, logout } = useSession();
   const { snapshot } = useCatalog();
+  const { favoriteIds } = useFavorites();
   const products = snapshot?.products;
   const [expoToken, setExpoToken] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState('');
@@ -126,6 +129,22 @@ export default function ProfileScreen() {
       <Text style={styles.title}>{user.name}</Text>
       <Text style={styles.muted}>{user.phone}</Text>
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}
+      <View style={styles.tilesRow}>
+        <Link href="/orders" asChild>
+          <Pressable style={styles.tile}>
+            <MaterialIcons color={colors.accentDark} name="receipt-long" size={24} />
+            <Text style={styles.tileLabel}>Мои покупки</Text>
+          </Pressable>
+        </Link>
+        <Link href="/favorites" asChild>
+          <Pressable style={styles.tile}>
+            <MaterialIcons color={colors.accentDark} name="favorite" size={24} />
+            <Text style={styles.tileLabel}>
+              Избранное{favoriteIds.length ? ` (${favoriteIds.length})` : ''}
+            </Text>
+          </Pressable>
+        </Link>
+      </View>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Уведомления</Text>
         <View style={styles.preference}>
@@ -193,6 +212,24 @@ const styles = StyleSheet.create({
   secondaryLink: {
     color: colors.text,
     fontWeight: '700',
+  },
+  tilesRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  tile: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    flex: 1,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  tileLabel: {
+    color: colors.text,
+    fontWeight: '800',
+    textAlign: 'center',
   },
   card: {
     backgroundColor: colors.card,

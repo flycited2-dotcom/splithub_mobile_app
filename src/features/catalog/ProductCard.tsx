@@ -1,8 +1,10 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 
+import { useFavorites } from '../favorites/favorites-context';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 import type { Product } from './types';
 
@@ -15,8 +17,22 @@ type ProductCardProps = {
 };
 
 export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onAdd }: ProductCardProps) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite(product.id);
+
   return (
     <View style={styles.card}>
+      <Pressable
+        accessibilityLabel={favorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+        hitSlop={8}
+        onPress={() => toggleFavorite(product.id)}
+        style={styles.heartButton}>
+        <MaterialIcons
+          color={favorite ? '#EF4444' : colors.muted}
+          name={favorite ? 'favorite' : 'favorite-border'}
+          size={22}
+        />
+      </Pressable>
       <Link href={{ pathname: '/product/[id]', params: { id: product.id } }} asChild>
         <Pressable style={styles.details}>
           <Image
@@ -51,6 +67,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     width: '48%',
+  },
+  heartButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: spacing.sm,
+    top: spacing.sm,
+    width: 34,
+    zIndex: 2,
   },
   details: {
     gap: spacing.xs,
