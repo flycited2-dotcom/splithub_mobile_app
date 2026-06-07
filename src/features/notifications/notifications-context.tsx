@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 import {
@@ -45,6 +46,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    // Enable launcher badges (the dot/count on the app icon) for incoming pushes.
+    if (Platform.OS === 'android') {
+      void Notifications.setNotificationChannelAsync('default', {
+        name: 'Уведомления',
+        importance: Notifications.AndroidImportance.HIGH,
+        showBadge: true,
+      });
+    }
     void notificationsStorage.read().then((stored) => {
       if (active) setNotifications(stored);
     });
@@ -79,9 +88,17 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     void notificationsStorage.read().then(setNotifications);
   }, []);
 
+  const unreadCount = useMemo(() => countUnread(notifications), [notifications]);
+
+  // Mirror the unread count onto the launcher icon badge so a minimised app
+  // still nudges the client to come back and read missed notifications.
+  useEffect(() => {
+    void Notifications.setBadgeCountAsync(unreadCount);
+  }, [unreadCount]);
+
   const value = useMemo<NotificationsValue>(
-    () => ({ notifications, unreadCount: countUnread(notifications), markAllRead, refresh }),
-    [notifications, markAllRead, refresh],
+    () => ({ notifications, unreadCount, markAllRead, refresh }),
+    [notifications, unreadCount, markAllRead, refresh],
   );
 
   return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;

@@ -15,7 +15,7 @@ import { SessionProvider } from '../features/session/session-context';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
   }),
