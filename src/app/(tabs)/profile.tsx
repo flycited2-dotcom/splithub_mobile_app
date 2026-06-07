@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '../../features/catalog/catalog-context';
@@ -130,20 +130,16 @@ export default function ProfileScreen() {
       <Text style={styles.muted}>{user.phone}</Text>
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}
       <View style={styles.tilesRow}>
-        <Link href="/orders" asChild>
-          <Pressable style={[styles.tile, styles.tileOrders]}>
-            <MaterialIcons color={colors.accentDark} name="receipt-long" size={24} />
-            <Text style={[styles.tileLabel, styles.tileLabelOrders]}>Мои покупки</Text>
-          </Pressable>
-        </Link>
-        <Link href="/favorites" asChild>
-          <Pressable style={[styles.tile, styles.tileFav]}>
-            <MaterialIcons color="#EF4444" name="favorite" size={24} />
-            <Text style={[styles.tileLabel, styles.tileLabelFav]}>
-              Избранное{favoriteIds.length ? ` (${favoriteIds.length})` : ''}
-            </Text>
-          </Pressable>
-        </Link>
+        <Pressable onPress={() => router.push('/orders')} style={[styles.tile, styles.tileOrders]}>
+          <MaterialIcons color={colors.accentDark} name="receipt-long" size={28} />
+          <Text style={[styles.tileLabel, styles.tileLabelOrders]}>Мои покупки</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/favorites')} style={[styles.tile, styles.tileFav]}>
+          <MaterialIcons color="#EF4444" name="favorite" size={28} />
+          <Text style={[styles.tileLabel, styles.tileLabelFav]}>
+            Избранное{favoriteIds.length ? ` (${favoriteIds.length})` : ''}
+          </Text>
+        </Pressable>
       </View>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Уведомления</Text>
@@ -219,22 +215,29 @@ const styles = StyleSheet.create({
   },
   tile: {
     alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    elevation: 2,
     flex: 1,
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    justifyContent: 'center',
+    minHeight: 88,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: 1, width: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   tileLabel: {
     color: colors.text,
+    fontSize: 15,
     fontWeight: '800',
     textAlign: 'center',
   },
   tileOrders: {
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.5)',
-    borderWidth: 1,
+    backgroundColor: '#FFF1E0',
+    borderColor: '#F0A329',
   },
   tileLabelOrders: {
     color: colors.accentDark,
@@ -242,7 +245,6 @@ const styles = StyleSheet.create({
   tileFav: {
     backgroundColor: '#FCECF7',
     borderColor: '#F4B7DB',
-    borderWidth: 1,
   },
   tileLabelFav: {
     color: '#BE185D',
