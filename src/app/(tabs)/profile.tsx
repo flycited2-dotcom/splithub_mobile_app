@@ -131,15 +131,15 @@ export default function ProfileScreen() {
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}
       <View style={styles.tilesRow}>
         <Link href="/orders" asChild>
-          <Pressable style={styles.tile}>
+          <Pressable style={[styles.tile, styles.tileOrders]}>
             <MaterialIcons color={colors.accentDark} name="receipt-long" size={24} />
-            <Text style={styles.tileLabel}>Мои покупки</Text>
+            <Text style={[styles.tileLabel, styles.tileLabelOrders]}>Мои покупки</Text>
           </Pressable>
         </Link>
         <Link href="/favorites" asChild>
-          <Pressable style={styles.tile}>
-            <MaterialIcons color={colors.accentDark} name="favorite" size={24} />
-            <Text style={styles.tileLabel}>
+          <Pressable style={[styles.tile, styles.tileFav]}>
+            <MaterialIcons color="#EF4444" name="favorite" size={24} />
+            <Text style={[styles.tileLabel, styles.tileLabelFav]}>
               Избранное{favoriteIds.length ? ` (${favoriteIds.length})` : ''}
             </Text>
           </Pressable>
@@ -170,17 +170,17 @@ export default function ProfileScreen() {
         </View>
         {notificationStatus ? <Text style={styles.muted}>{notificationStatus}</Text> : null}
       </View>
-      <Pressable onPress={() => void Linking.openURL(appConfig.managerTelegramUrl)} style={styles.outline}>
-        <Text style={styles.outlineText}>Написать менеджеру в Telegram</Text>
+      <Pressable onPress={() => void Linking.openURL(appConfig.managerTelegramUrl)} style={[styles.actionButton, styles.telegramButton]}>
+        <Text style={[styles.actionText, styles.telegramText]}>Написать менеджеру в Telegram</Text>
       </Pressable>
-      <Pressable onPress={() => void Linking.openURL(appConfig.managerPhoneUrl)} style={styles.outline}>
-        <Text style={styles.outlineText}>Позвонить менеджеру</Text>
+      <Pressable onPress={() => void Linking.openURL(appConfig.managerPhoneUrl)} style={[styles.actionButton, styles.callButton]}>
+        <Text style={[styles.actionText, styles.callText]}>Позвонить менеджеру</Text>
       </Pressable>
       <Pressable
         disabled={priceDownloading}
         onPress={showPriceListFormatPicker}
-        style={[styles.outline, priceDownloading && styles.disabledButton]}>
-        <Text style={styles.outlineText}>{priceDownloading ? 'Готовим прайс...' : 'Открыть прайс-лист'}</Text>
+        style={[styles.actionButton, styles.priceButton, priceDownloading && styles.disabledButton]}>
+        <Text style={[styles.actionText, styles.priceText]}>{priceDownloading ? 'Готовим прайс...' : 'Открыть прайс-лист'}</Text>
       </Pressable>
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>
@@ -231,6 +231,22 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
   },
+  tileOrders: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(245, 158, 11, 0.5)',
+    borderWidth: 1,
+  },
+  tileLabelOrders: {
+    color: colors.accentDark,
+  },
+  tileFav: {
+    backgroundColor: '#FCECF7',
+    borderColor: '#F4B7DB',
+    borderWidth: 1,
+  },
+  tileLabelFav: {
+    color: '#BE185D',
+  },
   card: {
     backgroundColor: colors.card,
     borderRadius: 14,
@@ -250,16 +266,36 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
   },
-  outline: {
-    borderColor: colors.accent,
+  actionButton: {
+    alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1,
     padding: spacing.md,
   },
-  outlineText: {
-    color: colors.accentDark,
+  actionText: {
     fontWeight: '800',
     textAlign: 'center',
+  },
+  telegramButton: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#4B9BC4',
+  },
+  telegramText: {
+    color: '#2C7DA8',
+  },
+  callButton: {
+    backgroundColor: 'rgba(85, 89, 103, 0.10)',
+    borderColor: 'rgba(85, 89, 103, 0.45)',
+  },
+  callText: {
+    color: '#3F4651',
+  },
+  priceButton: {
+    backgroundColor: '#B8D9DB',
+    borderColor: '#71CFC8',
+  },
+  priceText: {
+    color: colors.text,
   },
   disabledButton: {
     opacity: 0.72,

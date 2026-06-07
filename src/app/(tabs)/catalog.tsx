@@ -126,6 +126,7 @@ export default function CatalogScreen() {
           contentContainerStyle={[styles.flatList, stackScreenPadding(insets)]}
           data={products}
           initialNumToRender={10}
+          key="catalog-flat"
           keyExtractor={(product) => product.id}
           maxToRenderPerBatch={10}
           numColumns={2}
@@ -138,6 +139,7 @@ export default function CatalogScreen() {
           contentContainerStyle={[styles.groupedList, stackScreenPadding(insets)]}
           data={rows}
           initialNumToRender={10}
+          key="catalog-grouped"
           keyExtractor={(row) => row.id}
           maxToRenderPerBatch={10}
           removeClippedSubviews
