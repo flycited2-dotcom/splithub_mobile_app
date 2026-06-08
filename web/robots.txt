@@ -1,0 +1,223 @@
+# robots.txt — splithub.ru
+# Публичный контент открыт для всех поисковых систем и языковых моделей.
+# Машиночитаемая справка для LLM: https://splithub.ru/llms.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+# Явное приглашение для поисковых и AI-краулеров
+User-agent: Googlebot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Yandex
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: YandexBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Applebot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Mail.RU_Bot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Amazonbot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Bytespider
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+User-agent: Google-CloudVertexBot
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /db/
+Disallow: /converter/
+Disallow: /tmp_uploads/
+Disallow: /config.php
+
+Sitemap: https://splithub.ru/sitemap.xml
+

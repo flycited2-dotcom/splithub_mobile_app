@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+# python caches (deploy scripts)
+__pycache__/
+*.pyc
+
 # Expo
 .expo/
 dist/
