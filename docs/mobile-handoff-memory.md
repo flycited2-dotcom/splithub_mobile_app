@@ -398,6 +398,63 @@ Latest EAS/APK status on 2026-06-05:
   - User asked for a plan for Google Play, App Store/iOS, RuStore, iOS builds, and a serious security review.
   - Official-source research was started but not finalized in the user-facing answer yet. Continue from official Google Play, Apple Developer, Expo EAS, RuStore, and OWASP MASVS sources before giving store/security recommendations.
 
+## Session 2026-06-08 (catalog UX, stock badges, notifications, downloads, icon, push deploy)
+
+Branch `codex/native-site-parity`, HEAD `f0e989a`, pushed to origin. Latest APK
+(102 MB, all features) built and installed on TECNO BG6 `11000373CD011362`.
+
+Commits this session (all pushed):
+- `a3c6f3a` — "Мои покупки" badge counts real purchases (excl. new/cancelled).
+- `229e1c6` — **Windows release build fix** (see gotchas below).
+- `95746d4` — catalog tab reset, stock glass badges, local notification history.
+- `b0b7a34` — catalog tab opens full flat catalog everywhere; price → Downloads.
+- `f0e989a` — clean app icon + launcher badge on push.
+
+Delivered & device-verified:
+- Catalog tab (main + `StackBottomTabs`) always opens full flat catalog; Home
+  quick-filters use `router.navigate`; `backBehavior="initialRoute"` so hardware
+  back returns to Home instead of exiting.
+- Stock availability glass badges (`src/features/catalog/stock-badge.ts`) on
+  `ProductCard` and product screen, colours mirror the website (`index.html .sb-*`):
+  in_stock/days_1_2/days_3_5/order_7/out (codes confirmed from the live site).
+- Local notification history: `notifications-storage.ts` + `notifications-context.tsx`
+  (AsyncStorage key `splithub.notifications`), `/notifications` screen, "Открыть"
+  button in Profile, unread badge on Profile tab + `StackBottomTabs`.
+- Price list downloads straight to system **Downloads** with no folder picker via
+  an **in-app native Kotlin module** `SplitHubDownloads` (MediaStore):
+  `android/app/src/main/java/ru/splithub/mobile/DownloadsModule.kt` + `DownloadsPackage.kt`,
+  registered in `MainApplication.kt`. Verified file lands in `/sdcard/Download/`.
+- App icon: foreground was the whole iOS tile (white corners + orange + swirl) →
+  swirl clipped by mask. Now foreground = swirl-only, centred ~60% on transparent,
+  over orange `#F6A400` bg. Regenerated all density mipmaps + monochrome; source
+  `assets/images/android-icon-foreground.png` is now the clean swirl.
+- Launcher badge on push: handler `shouldSetBadge: true`, Android channel `default`
+  with `showBadge`, `setBadgeCountAsync(unreadCount)`. System dot on incoming push
+  is automatic; numeric count is launcher-dependent.
+
+⚠️ **Windows release build gotchas (critical):**
+- Object paths exceed the Windows 260-char limit for deep C++ modules. Fixed in
+  patches: `react-native-worklets`/`react-native-reanimated` set
+  `buildStagingDirectory "C:/wkx"` / `"C:/wkr"` (Windows-only) to relocate `.cxx`;
+  `android/gradle.properties` has `android.packagingOptions.pickFirsts=**/libworklets.so`
+  (libworklets ships from both worklets and expo-modules-core → merge collision).
+- **Do NOT add native modules whose New-Arch codegen lives deep in node_modules** —
+  `react-native-blob-util` failed because `ReactNativeBlobUtilSpec` codegen compiled
+  inside the app `.cxx` at ~380 chars (MAX_PATH). Use an in-app Kotlin module
+  instead (no RN codegen, no `.cxx`).
+- After adding/removing a native module: `rm -rf android/app/.cxx android/app/build/generated/autolinking` to force a clean reconfigure.
+
+Server (splithub.ru) — order-status push latin→Russian, DEPLOYED:
+- `api/lib/push.php` `sendOrderStatusPush()` now sends Russian + emoji titles
+  (🆕 Новый / ✅ Подтверждён / ⏳ В работе / 🚚 Отгружен / 🎉 Выполнен / ❌ Отменён),
+  body "Нажмите, чтобы открыть детали заказа". Backup `push.php.bak-codex-20260608-011820`,
+  `php -l` clean. Called from `api/admin.php:202,216` and `api/tg_poll.php:110`.
+- Live test verified via prod `push_deliveries`: campaigns 13 (❌ order 60) and
+  14 (✅ order 63) `delivered` to real device id6. Junk device id1
+  (`ExponentPushToken[deploy-verify-test]`) deactivated (`active=0`).
+- NOTE: this server push.php change is **server-only**, not in any git repo. To
+  version it, mirror into the site repo `flycited2-dotcom/splithub`.
+
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
