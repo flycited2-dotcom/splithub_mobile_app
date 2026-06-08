@@ -455,6 +455,40 @@ Server (splithub.ru) — order-status push latin→Russian, DEPLOYED:
 - NOTE: this server push.php change is **server-only**, not in any git repo. To
   version it, mirror into the site repo `flycited2-dotcom/splithub`.
 
+## NEXT PLAN (prioritized — recorded 2026-06-08, approved by user)
+
+Key de-risk found this session: **production push DELIVERY works** (server
+splithub.ru → Expo → device; campaigns 13/14 `delivered`). The RU geo-block now
+only affects device token **registration** (needs VPN once); RuStore Push would
+remove even that. So the old "RU push" blocker is largely resolved in practice.
+
+1. **Publish — signed APK via cloud link** for current B2B clients. Foundation is
+   ready (own release keystore + reproducible Windows build). Quick win.
+2. **RuStore** — register developer, upload the signed APK, listing (icon ✅,
+   privacy policy ✅ `docs/privacy-policy-ru.md`, screenshots, description),
+   moderation → publish. Right store for RU; RuStore Push fixes token registration
+   without VPN.
+3. **Server-side notification history sync** — so the client sees pushes that
+   arrived while the app was fully closed (local history only captures
+   running/opened). Add a backend endpoint + fetch/merge in the app
+   (`notifications-context.tsx`).
+4. **(optional) In-app Admin section** (gate by `role === 'admin'`): push composer,
+   promos, stats, order-status. Backend `api/admin.php` is ready — work is the
+   native screens.
+5. **(optional) Google Play** — $25, needs AAB, stricter review, RU access limits.
+6. **iOS** — same RN code, but needs a Mac (or Codemagic) + Apple Developer
+   $99/yr + APNs key. Route: Apple Dev → macOS build → TestFlight → App Store.
+
+Suggested order: **APK link → RuStore → server notif history → (opt) in-app admin → Google Play → iOS.**
+
+Hygiene / risk (small but important):
+- ⚠️ **Offline backup of `android/app/release.jks` + `android/keystore.properties`**
+  (both gitignored). Losing them = can't update the app in any store. Confirm a
+  copy exists outside the repo (e.g. the Documents backup folder / password manager).
+- Mirror the server fix `api/lib/push.php` (Russian+emoji order-status push) into
+  the site repo `flycited2-dotcom/splithub` so it is under version control (it
+  currently lives only on the server).
+
 ## Open Work
 
 - Auth/session follow-up: the user-reported "logged in but still shows logged out" state was not reproduced on APK `2127be7`; keep watching for it on other accounts or older installed APKs.
