@@ -1,6 +1,17 @@
 <?php
 require_once __DIR__ . '/../../db/init.php';
 
+// Поэтапный выкат: обязателен ли email при регистрации (флаг app_settings.email_required).
+function pr_emailRequired(): bool {
+    try {
+        $s = getDB()->prepare("SELECT value FROM app_settings WHERE key='email_required'");
+        $s->execute();
+        return $s->fetchColumn() === '1';
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 function pr_generateCode(): string {
     return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 }

@@ -10,7 +10,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import paramiko
 
 REPO = Path(__file__).resolve().parents[1]
-SRC = REPO / "tmp" / "server-api"
+SRC = REPO / "server-src"
 REMOTE = "pr-dev"  # относительно домашней папки пользователя
 
 cfg = json.loads((Path.home() / ".splithub-deploy.json").read_text(encoding="utf-8"))

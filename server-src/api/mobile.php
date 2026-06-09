@@ -51,8 +51,8 @@ try {
         $phone = normalizePhone((string)($data['phone'] ?? ''));
         $password = (string)($data['password'] ?? '');
         $email = trim((string)($data['email'] ?? ''));
-        if ($name === '' || strlen($phone) < 10 || strlen($phone) > 15 || strlen($password) < 4
-            || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $emailBad = ($email === '') ? pr_emailRequired() : !filter_var($email, FILTER_VALIDATE_EMAIL);
+        if ($name === '' || strlen($phone) < 10 || strlen($phone) > 15 || strlen($password) < 4 || $emailBad) {
             fail('INVALID_REGISTRATION', 422);
         }
         $db = getDB();

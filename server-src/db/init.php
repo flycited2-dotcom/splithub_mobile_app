@@ -52,6 +52,9 @@ function getDB() {
             value TEXT NOT NULL DEFAULT ''
         )");
         $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('bonuses_enabled', '1')");
+        // Поэтапный выкат: email в регистрации сначала опционален ('0'),
+        // флип на обязательный ('1') — после готовности фронтов сайта и приложения.
+        $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('email_required', '0')");
     } catch (Throwable $e) {}
 
     // Mobile bearer sessions and push-notification devices

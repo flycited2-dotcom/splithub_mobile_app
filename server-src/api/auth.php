@@ -73,7 +73,8 @@ switch ($action) {
         if (strlen($password) < 4) {
             jsonResponse(['ok' => false, 'error' => 'Пароль минимум 4 символа'], 422);
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $emailBad = ($email === '') ? pr_emailRequired() : !filter_var($email, FILTER_VALIDATE_EMAIL);
+        if ($emailBad) {
             jsonResponse(['ok' => false, 'error' => 'Укажите корректный email'], 422);
         }
 
