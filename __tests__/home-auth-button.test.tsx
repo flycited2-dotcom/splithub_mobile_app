@@ -71,6 +71,9 @@ test('shows profile entry on home when the user is signed in', () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: {
       id: 1,
       name: 'Test_mob',
@@ -91,6 +94,9 @@ test('shows login entry on home when the user is signed out', () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 
@@ -107,6 +113,9 @@ test('opens the full catalog in flat mode from the home screen', () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 
@@ -127,6 +136,9 @@ test('keeps the home screen inside the safe area without scroll overshoot', () =
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 
@@ -157,6 +169,9 @@ test('pulls down on the home screen to refresh the catalog', async () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 
@@ -179,6 +194,9 @@ test('colors the home quick filters by product group', () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 
@@ -209,6 +227,9 @@ test('keeps the closed poluprom modal outside the home scroll content', () => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 

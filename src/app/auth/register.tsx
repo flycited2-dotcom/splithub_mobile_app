@@ -10,16 +10,21 @@ export default function RegisterScreen() {
   const { register } = useSession();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+7');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [telegram, setTelegram] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function submit() {
+    if (!email.includes('@')) {
+      setError('Укажите email — он нужен для восстановления доступа');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      await register(name, phone, password, telegram);
+      await register(name, phone, password, telegram, email);
       router.replace('/profile');
     } catch (failure) {
       setError(sessionErrorMessage(apiErrorCode(failure)));
@@ -40,6 +45,14 @@ export default function RegisterScreen() {
           placeholder="Телефон"
           style={styles.input}
           value={phone}
+        />
+        <TextInput
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          placeholder="Email (для восстановления доступа)"
+          style={styles.input}
+          value={email}
         />
         <TextInput
           onChangeText={setPassword}

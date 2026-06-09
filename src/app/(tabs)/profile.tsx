@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,7 +29,7 @@ import { colors, spacing } from '../../lib/theme';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, loading, logout } = useSession();
+  const { user, loading, logout, updateEmail } = useSession();
   const { snapshot, loading: catalogLoading, refresh: refreshCatalog } = useCatalog();
   const { favoriteIds } = useFavorites();
   const { unreadCount } = useNotifications();
@@ -39,6 +39,9 @@ export default function ProfileScreen() {
   const [priceDownloading, setPriceDownloading] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultNotificationPreferences);
   const [purchasedCount, setPurchasedCount] = useState(0);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   // "Мои покупки" counts real purchases only (excludes cancelled and freshly added "new" orders).
   const loadPurchasedCount = useCallback(async () => {
@@ -117,6 +120,23 @@ export default function ProfileScreen() {
     }
   }
 
+  async function saveEmail() {
+    if (!emailInput.includes('@')) {
+      setEmailError('Укажите корректный email');
+      return;
+    }
+    setEmailSaving(true);
+    setEmailError('');
+    try {
+      await updateEmail(emailInput);
+      setEmailInput('');
+    } catch {
+      setEmailError('Не удалось сохранить email. Попробуйте позже.');
+    } finally {
+      setEmailSaving(false);
+    }
+  }
+
   function showPriceListFormatPicker() {
     Alert.alert('Скачать прайс', 'Выберите формат файла для сохранения на телефон.', [
       { text: 'PDF', onPress: () => void handlePriceListDownload('pdf') },
@@ -166,6 +186,24 @@ export default function ProfileScreen() {
       <Text style={styles.title}>{user.name}</Text>
       <Text style={styles.muted}>{user.phone}</Text>
       {user.telegram ? <Text style={styles.muted}>Telegram: {user.telegram}</Text> : null}
+      {!user.email ? (
+        <View style={styles.emailBanner}>
+          <Text style={styles.emailBannerTitle}>Добавьте email</Text>
+          <Text style={styles.muted}>Нужен для восстановления доступа, если забудете пароль.</Text>
+          <TextInput
+            autoCapitalize="none"
+            keyboardType="email-address"
+            onChangeText={setEmailInput}
+            placeholder="you@mail.ru"
+            style={styles.emailInput}
+            value={emailInput}
+          />
+          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
+          <Pressable disabled={emailSaving} onPress={() => void saveEmail()} style={styles.emailSaveBtn}>
+            <Text style={styles.emailSaveText}>{emailSaving ? 'Сохранение...' : 'Сохранить email'}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={styles.tilesRow}>
         <Pressable onPress={() => router.push('/orders')} style={[styles.tile, styles.tileOrders]}>
           <MaterialIcons color={colors.accentDark} name="receipt-long" size={28} />
@@ -249,6 +287,39 @@ const styles = StyleSheet.create({
   },
   muted: {
     color: colors.muted,
+  },
+  error: {
+    color: '#B91C1C',
+  },
+  emailBanner: {
+    backgroundColor: '#F1FBF4',
+    borderColor: '#10A03C',
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  emailBannerTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  emailInput: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  emailSaveBtn: {
+    alignItems: 'center',
+    backgroundColor: '#10A03C',
+    borderRadius: 12,
+    padding: spacing.md,
+  },
+  emailSaveText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
   primaryLink: {
     color: colors.accentDark,

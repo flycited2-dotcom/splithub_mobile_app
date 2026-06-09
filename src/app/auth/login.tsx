@@ -53,6 +53,9 @@ export default function LoginScreen() {
         <Link href="/auth/register" style={styles.link}>
           Создать аккаунт
         </Link>
+        <Link href="/auth/reset" style={styles.link}>
+          Забыли пароль?
+        </Link>
       </View>
     </>
   );

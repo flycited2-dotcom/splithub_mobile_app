@@ -32,6 +32,9 @@ beforeEach(() => {
     logout: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
+    requestPasswordReset: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
     user: null,
   });
 });
