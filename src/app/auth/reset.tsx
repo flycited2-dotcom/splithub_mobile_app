@@ -19,6 +19,10 @@ export default function ResetScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   async function sendRequest() {
+    if (!identifier.includes('@')) {
+      setError('Введите ваш email');
+      return;
+    }
     setSubmitting(true);
     setError('');
     setInfo('');
@@ -32,7 +36,7 @@ export default function ResetScreen() {
       } else if (result.state === 'rate_limited') {
         setError('Слишком много запросов. Попробуйте позже.');
       } else {
-        setError('Аккаунт с таким телефоном или email не найден.');
+        setError('Email не найден. Если регистрировались раньше без email — обратитесь к менеджеру: +7 978 599-13-69.');
       }
     } catch (failure) {
       setError(sessionErrorMessage(apiErrorCode(failure)));
@@ -61,11 +65,12 @@ export default function ResetScreen() {
         {step === 'request' ? (
           <>
             <Text style={styles.title}>Забыли пароль?</Text>
-            <Text style={styles.hint}>Введите телефон или email — пришлём код на привязанный email.</Text>
+            <Text style={styles.hint}>Введите email, привязанный к аккаунту — пришлём на него код.</Text>
             <TextInput
               autoCapitalize="none"
+              keyboardType="email-address"
               onChangeText={setIdentifier}
-              placeholder="Телефон или email"
+              placeholder="Ваш email"
               style={styles.input}
               value={identifier}
             />

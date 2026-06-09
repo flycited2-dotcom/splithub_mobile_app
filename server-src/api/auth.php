@@ -98,6 +98,7 @@ switch ($action) {
             'id'   => $userId,
             'name' => $name,
             'phone' => $phone,
+            'email' => $email,
             'role'  => 'client'
         ]]);
         break;
@@ -160,6 +161,7 @@ switch ($action) {
             'id'   => (int)$user['id'],
             'name' => $user['name'],
             'phone' => $user['phone'],
+            'email' => $user['email'] ?? '',
             'role'  => $user['role']
         ]]);
         break;
@@ -182,7 +184,7 @@ switch ($action) {
         if (!$uid) jsonResponse(['ok' => false, 'authorized' => false], 200);
         $db = getDB();
 
-        $stmt = $db->prepare('SELECT id, name, phone, telegram, role, created_at FROM users WHERE id = ?');
+        $stmt = $db->prepare('SELECT id, name, phone, telegram, role, email, created_at FROM users WHERE id = ?');
         $stmt->execute([$uid]);
         $user = $stmt->fetch();
 

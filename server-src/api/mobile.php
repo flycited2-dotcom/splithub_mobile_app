@@ -81,7 +81,7 @@ try {
 
     if ($action === 'profile') {
         $uid = requireMobileUser();
-        $stmt = getDB()->prepare('SELECT id,name,phone,telegram,role,created_at FROM users WHERE id=?');
+        $stmt = getDB()->prepare('SELECT id,name,phone,telegram,role,email,created_at FROM users WHERE id=?');
         $stmt->execute([$uid]);
         ok(['user' => $stmt->fetch()]);
     }

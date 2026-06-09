@@ -19,7 +19,7 @@ function bearerToken(?array $server = null, ?array $headers = null): string {
 function issueMobileToken(string $phone, string $password): array {
     $db = getDB();
     $normalized = normalizePhone($phone) ?: trim($phone);
-    $stmt = $db->prepare('SELECT id,name,phone,telegram,role,password_hash FROM users WHERE phone=?');
+    $stmt = $db->prepare('SELECT id,name,phone,telegram,role,email,password_hash FROM users WHERE phone=?');
     $stmt->execute([$normalized]);
     $user = $stmt->fetch();
     if (!$user || !password_verify($password, $user['password_hash'])) {
@@ -36,7 +36,7 @@ function issueMobileToken(string $phone, string $password): array {
 
 function issueMobileTokenForUser(int $userId): array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT id,name,phone,telegram,role FROM users WHERE id=?');
+    $stmt = $db->prepare('SELECT id,name,phone,telegram,role,email FROM users WHERE id=?');
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
     if (!$user) throw new RuntimeException('INVALID_CREDENTIALS');
