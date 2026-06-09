@@ -133,6 +133,18 @@ switch ($action) {
         jsonResponse(['ok' => true, 'user' => $res['user']]);
         break;
 
+    // ── Привязать/обновить свой email ──
+    case 'update_email':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $uid = authCheck();
+        if (!$uid) jsonResponse(['ok' => false, 'error' => 'Необходима авторизация'], 401);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $email = trim($raw['email'] ?? '');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) jsonResponse(['ok' => false, 'error' => 'Укажите корректный email'], 422);
+        getDB()->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $uid]);
+        jsonResponse(['ok' => true, 'email' => $email]);
+        break;
+
     // ── Login ──
     case 'login':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
