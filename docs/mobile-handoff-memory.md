@@ -1,6 +1,22 @@
 # Mobile Handoff Memory
 
-Updated: 2026-06-06 18:30 +03:00
+Updated: 2026-06-10
+
+> **Сначала читай `docs/START-HERE.md`** — одностраничный обзор проекта, состояние,
+> ссылки, как собрать/задеплоить. Этот файл — детальный исторический лог.
+
+## CURRENT STATE (2026-06-10)
+- Приложение **v1.1.0 (versionCode 2)** собрано/подписано/выложено: https://splithub.ru/app/.
+- **Восстановление пароля по email** — сделано на сервере, сайте, в приложении и админке
+  (менеджерский сброс + привязка email). Email при регистрации **обязателен**
+  (флаг `app_settings.email_required='1'`). Детали — `superpowers/specs|plans/*password-recovery*`.
+- HTTPS-редирект на сайте включён; APK отдаётся по https; иконка-вихрь уменьшена (~68%).
+- Рабочая копия серверного PHP — `server-src/`; серверные тесты — `scripts/run_server_tests.py`.
+- **Осталось:** чистка тест-аккаунтов в проде (`TestReg1634`, `test1634@example.com`, `ТЕСТ*`,
+  `E2E*`); RuStore (2-й план, `docs/rustore-listing.md`); iOS (`docs/ios-release-guide.md`).
+- Переиспользуемый рецепт для будущих приложений — `docs/mobile-app-playbook.md`.
+
+---
 
 This file is the working memory for continuing the SplitHub mobile app safely after a reboot or a new Codex session.
 
