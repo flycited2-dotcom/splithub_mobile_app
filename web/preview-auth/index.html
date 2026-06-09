@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Превью: регистрация и восстановление — СплитХаб</title>
+<style>
+  :root{--amber:#f59e0b;--amber-d:#d97706;--text:#0f1115;--text2:#5b6472;--line:#e3e7ee;--bg:#f0f2f5;--card:#fff;--green:#10a03c;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);padding:18px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:20px;margin:4px 0 2px;}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:16px;}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .tab{font-size:13px;font-weight:700;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--text2);}
+  .tab.on{background:var(--amber);color:#fff;border-color:transparent;}
+  .stage{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+  .phone{width:340px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 20px;box-shadow:0 14px 40px rgba(0,0,0,.08);}
+  .logo{font-family:'Unbounded',sans-serif;font-weight:800;font-size:18px;margin-bottom:2px;}
+  .logo em{font-style:normal;color:var(--amber);}
+  .screen-title{font-size:22px;font-weight:900;margin:6px 0 14px;}
+  label{display:block;font-size:12px;color:var(--text2);margin:10px 0 4px;font-weight:600;}
+  input{width:100%;padding:13px 12px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fbfcfe;}
+  .new{position:relative;}
+  .new input{border-color:var(--green);background:#f1fbf4;}
+  .new .badge{position:absolute;right:8px;top:30px;font-size:10px;font-weight:800;color:#fff;background:var(--green);border-radius:6px;padding:2px 6px;}
+  .hint{font-size:11px;color:var(--text2);margin-top:4px;}
+  .btn{display:block;width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;background:var(--amber);color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+  .btn:active{background:var(--amber-d);}
+  .link{display:block;text-align:center;margin-top:12px;color:var(--amber-d);font-size:13px;font-weight:700;cursor:pointer;}
+  .note{width:300px;max-width:100%;font-size:13px;color:var(--text2);line-height:1.5;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .note b{color:var(--text);}
+  .note .ok{color:var(--green);font-weight:700;}
+  .codebox{display:flex;gap:8px;justify-content:space-between;}
+  .codebox input{text-align:center;font-size:22px;letter-spacing:4px;font-weight:800;}
+  .sent{background:#f1fbf4;border:1px solid #bfe6cb;border-radius:10px;padding:10px 12px;font-size:13px;color:#0a7d2c;margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Превью UX: регистрация и восстановление доступа</h1>
+  <div class="sub">Это макет для оценки трения. Кнопки только переключают экраны, ничего не отправляется. Так это будет выглядеть и на сайте, и в приложении.</div>
+
+  <div class="tabs">
+    <div class="tab on" data-s="reg" onclick="go('reg')">1 · Регистрация (с email)</div>
+    <div class="tab" data-s="req" onclick="go('req')">2 · Забыли пароль → запрос кода</div>
+    <div class="tab" data-s="code" onclick="go('code')">3 · Ввод кода + новый пароль</div>
+  </div>
+
+  <!-- РЕГИСТРАЦИЯ -->
+  <div class="stage" id="s-reg">
+    <div class="phone">
+      <div class="logo">Сплит<em>Хаб</em></div>
+      <div class="screen-title">Новый аккаунт</div>
+      <label>Имя</label><input placeholder="Иван" />
+      <label>Телефон</label><input placeholder="+7" value="+7" />
+      <div class="new">
+        <label>Email</label><span class="badge">НОВОЕ</span>
+        <input placeholder="you@mail.ru" />
+        <div class="hint">Понадобится для восстановления доступа, если забудете пароль</div>
+      </div>
+      <label>Пароль от 4 символов</label><input type="password" placeholder="••••" />
+      <label>Telegram (необязательно)</label><input placeholder="@username" />
+      <button class="btn" onclick="go('req')">Зарегистрироваться</button>
+      <span class="link" onclick="go('req')">Уже есть аккаунт? Войти / Забыли пароль?</span>
+    </div>
+    <div class="note">
+      <b>Что меняется на входе:</b><br/>
+      Добавляется <span class="ok">ровно одно поле — Email</span>. Остальное как сейчас.<br/><br/>
+      Email нужен, чтобы клиент мог сам восстановить пароль и не терял аккаунт.<br/><br/>
+      <b>Запасной рычаг:</b> если решишь, что лишнее поле отпугивает — сделаем email необязательным на входе и попросим добавить позже.
+    </div>
+  </div>
+
+  <!-- ЗАПРОС КОДА -->
+  <div class="stage" id="s-req" style="display:none">
+    <div class="phone">
+      <div class="logo">Сплит<em>Хаб</em></div>
+      <div class="screen-title">Восстановление доступа</div>
+      <label>Телефон или email</label>
+      <input placeholder="+7 978 599-13-69 или you@mail.ru" />
+      <div class="hint">Пришлём 6-значный код на email, привязанный к аккаунту</div>
+      <button class="btn" onclick="go('code')">Получить код</button>
+      <span class="link" onclick="go('reg')">← Назад к регистрации</span>
+    </div>
+    <div class="note">
+      <b>Поток восстановления — 2 коротких экрана.</b><br/><br/>
+      Если к аккаунту <b>нет email</b> — покажем: «Обратитесь к менеджеру, +7 978 599-13-69» (менеджер сбросит пароль в админке).<br/><br/>
+      Если телефон <b>не найден</b> — предложим зарегистрироваться.
+    </div>
+  </div>
+
+  <!-- ВВОД КОДА -->
+  <div class="stage" id="s-code" style="display:none">
+    <div class="phone">
+      <div class="logo">Сплит<em>Хаб</em></div>
+      <div class="screen-title">Введите код</div>
+      <div class="sent">Код отправлен на i***@m***.ru</div>
+      <label>Код из письма</label>
+      <div class="codebox"><input maxlength="6" placeholder="000000" /></div>
+      <label>Новый пароль</label><input type="password" placeholder="новый пароль" />
+      <button class="btn" onclick="alert('Готово — в реальной версии здесь вход в профиль')">Сохранить и войти</button>
+      <span class="link" onclick="go('req')">← Запросить код заново</span>
+    </div>
+    <div class="note">
+      <b>После сохранения</b> — автоматический вход в профиль.<br/><br/>
+      Код действует 15 минут, одноразовый, до 5 попыток. При сбросе старые сессии завершаются (безопасность).
+    </div>
+  </div>
+</div>
+<script>
+function go(s){
+  ['reg','req','code'].forEach(function(x){
+    document.getElementById('s-'+x).style.display = (x===s?'flex':'none');
+    document.querySelector('.tab[data-s="'+x+'"]').classList.toggle('on', x===s);
+  });
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
