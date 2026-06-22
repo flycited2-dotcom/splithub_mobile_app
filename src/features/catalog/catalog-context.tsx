@@ -1,4 +1,5 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { loadCatalog } from './catalog-repository';
 import type { CatalogSnapshot } from './types';
@@ -18,6 +19,7 @@ export function CatalogProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [offline, setOffline] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const appState = useRef(AppState.currentState);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -35,6 +37,17 @@ export function CatalogProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const wasInactive = appState.current !== 'active';
+      appState.current = nextAppState;
+      if (wasInactive && nextAppState === 'active') {
+        void refresh();
+      }
+    });
+    return () => subscription.remove();
   }, [refresh]);
 
   const value = useMemo(
