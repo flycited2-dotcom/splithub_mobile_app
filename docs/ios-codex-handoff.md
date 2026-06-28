@@ -29,18 +29,35 @@
 - Решение по распространению: начать с **TestFlight** (бета), затем App Store.
 - Платёжные/идентификационные данные для Apple (вне репозитория).
 
+## ⚠️ АВТОРИЗАЦИЯ В APPLE — только через App Store Connect API Key (НЕ интерактивный логин!)
+Интерактивный вход в Apple ID (email/пароль/2FA) при повторных попытках вызывает
+Apple-блокировку `Too many verification codes requested`. **НЕ использовать** Apple ID
+логин в EAS. Вместо этого — **App Store Connect API Key** (без пароля и 2FA):
+
+Человек создаёт ключ в App Store Connect → Users and Access → Integrations →
+App Store Connect API → Generate (роль Admin). Скачивает `AuthKey_XXXX.p8` (только раз),
+сохраняет **Key ID** и **Issuer ID**. Передаёт агенту эти 3 значения.
+
+Агент использует API-ключ в EAS (НЕ запускать `eas login`/интерактивный Apple-логин):
+- задать в окружении: `EXPO_ASC_API_KEY_PATH=/path/AuthKey_XXXX.p8`,
+  `EXPO_ASC_API_KEY_ID=<KeyID>`, `EXPO_ASC_API_KEY_ISSUER_ID=<IssuerID>`;
+- либо добавить ключ через `eas credentials` (выбрать App Store Connect API Key).
+EAS этим ключом сам создаст Distribution Certificate + Provisioning Profile и сделает submit —
+без единого кода 2FA.
+
+Если Apple уже показывает `Too many verification codes` — это кулдаун, снимается только
+ВРЕМЕНЕМ (часы). Не повторять попытки логина; перейти на API-ключ и ждать снятия лимита.
+
 ## Шаги для агента (EAS, облачный Mac)
 1. `cd mobile-native-parity && npm ci`
 2. Сгенерировать iOS-проект: `npx expo prebuild --platform ios` (создаст `ios/`).
    Проверить `ios/SplitHub/Info.plist`: `ITSAppUsesNonExemptEncryption=false` (уже
    `usesNonExemptEncryption:false` в app.json), push-capability (добавляет expo-notifications).
-3. Вход в EAS: `npx eas login` (как `alextsarev`).
-4. Сборка: `npx eas build --platform ios --profile production`.
-   - EAS сам создаст/привяжет **Distribution Certificate + Provisioning Profile**
-     (выбрать «let EAS manage credentials», вход в Apple Developer по запросу).
-   - На выходе — `.ipa` (сборка на их Mac).
-5. Push (APNs): `npx eas credentials` → платформа iOS → создать/привязать **APNs Key (.p8)**.
-   Серверная отправка через Expo уже совместима (Expo маршрутизирует в APNs).
+3. Привязать **App Store Connect API Key** (см. блок выше) — НЕ `eas login` с Apple ID.
+4. Сборка: `npx eas build --platform ios --profile production` (credentials берутся из API-ключа,
+   2FA не запрашивается). На выходе — `.ipa` (сборка на Mac Expo).
+5. Push (APNs): через тот же API-ключ — `npx eas credentials` → iOS → создать/привязать
+   **APNs Key (.p8)**. Серверная отправка через Expo уже совместима.
 6. Публикация: `npx eas submit --platform ios --profile production`
    (загрузит в App Store Connect → TestFlight). Затем в App Store Connect заполнить
    карточку: описание (взять/адаптировать из `docs/rustore-listing.md`), категория,
