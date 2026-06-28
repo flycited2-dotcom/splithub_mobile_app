@@ -8,7 +8,7 @@
     "scheme": "splithub",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png",
+      "icon": "./assets/images/ios-icon.png",
       "bundleIdentifier": "ru.splithub.mobile",
       "config": {
         "usesNonExemptEncryption": false

@@ -59,7 +59,17 @@
     "lint": "expo lint",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "ios:apple-auth-status": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-guard.ps1 -Action Status",
+    "ios:apple-auth-cooldown": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-guard.ps1 -Action MarkCooldown",
+    "ios:credentials:safe": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-guard.ps1 -Action Credentials",
+    "ios:build:safe": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-guard.ps1 -Action Build",
+    "ios:submit:safe": "eas submit --platform ios --profile production --non-interactive --latest",
+    "ios:asc:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-asc.ps1 -Action Check",
+    "ios:apple:enable-push": "node ./scripts/apple-enable-push-capability.cjs",
+    "ios:credentials:asc": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-asc.ps1 -Action Credentials",
+    "ios:build:asc": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-asc.ps1 -Action Build",
+    "ios:submit:asc": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/eas-ios-asc.ps1 -Action Submit"
   },
   "jest": {
     "preset": "jest-expo",
