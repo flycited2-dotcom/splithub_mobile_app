@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { orderStatusColors, orderStatusLabels } from '../../features/orders/order-status';
@@ -51,9 +51,13 @@ export default function OrdersScreen() {
     }
   }, [user]);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  // Order statuses change server-side, so reload every time the tab gains
+  // focus (tab screens stay mounted and a mount-only effect goes stale).
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
 
   if (!user) {
     return (

@@ -19,7 +19,7 @@ test('ignores a malformed catalog cache instead of throwing', async () => {
   await expect(catalogStorage.read()).resolves.toBeNull();
 });
 
-test('ignores an expired catalog cache', async () => {
+test('returns a stale catalog cache as offline fallback', async () => {
   jest.useFakeTimers().setSystemTime(new Date('2026-06-06T12:00:00Z'));
   await AsyncStorage.setItem('splithub.catalog-cache', JSON.stringify({
     savedAt: Date.now() - 25 * 60 * 60 * 1000,
@@ -27,7 +27,7 @@ test('ignores an expired catalog cache', async () => {
     snapshot: catalogSnapshot,
   }));
 
-  await expect(catalogStorage.read()).resolves.toBeNull();
+  await expect(catalogStorage.read()).resolves.toEqual(catalogSnapshot);
 });
 
 test('writes the catalog cache with a schema envelope', async () => {

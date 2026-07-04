@@ -2,7 +2,7 @@
   "expo": {
     "name": "SplitHub",
     "slug": "splithub",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "splithub",
@@ -17,7 +17,7 @@
     "android": {
       "package": "ru.splithub.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#F6A400",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

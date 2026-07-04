@@ -5,7 +5,6 @@ import type { CatalogSnapshot } from '../features/catalog/types';
 const CATALOG_KEY = 'splithub.catalog-cache';
 const CART_KEY = 'splithub.cart';
 const CATALOG_CACHE_SCHEMA_VERSION = 1;
-const CATALOG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 type CatalogCacheEnvelope = {
   savedAt: number;
@@ -40,16 +39,15 @@ function isCatalogEnvelope(value: unknown): value is CatalogCacheEnvelope {
   );
 }
 
-function isFresh(savedAt: number) {
-  return Date.now() - savedAt <= CATALOG_CACHE_TTL_MS;
-}
-
 export const catalogStorage = {
+  // The cache is only used as a fallback when the network fetch fails, so a
+  // stale catalog (with its update date in the offline banner) beats an empty
+  // screen; order prices are re-validated server-side at checkout anyway.
   read: async () => {
     const raw = await AsyncStorage.getItem(CATALOG_KEY);
     const parsed = safeParse<CatalogCacheEnvelope | CatalogSnapshot>(raw);
     if (isCatalogEnvelope(parsed)) {
-      return isFresh(parsed.savedAt) ? parsed.snapshot : null;
+      return parsed.snapshot;
     }
     return isCatalogSnapshot(parsed) ? parsed : null;
   },

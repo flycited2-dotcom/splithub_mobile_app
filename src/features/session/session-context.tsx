@@ -5,8 +5,10 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 
 import { api } from '../../lib/api';
 import { tokenStorage } from '../../lib/token-storage';
@@ -68,9 +70,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const result = await api<{ user: User }>('profile');
       setUser(result.user);
       void registerSessionDevice();
-    } catch {
-      await tokenStorage.clear();
-      setUser(null);
+    } catch (error) {
+      // Only a rejected token ends the session. A network failure (offline
+      // launch, flaky connection) must not log the user out — keep the token
+      // and retry when the app returns to the foreground.
+      const code = (error as { data?: { code?: string } }).data?.code;
+      if (code === 'SESSION_EXPIRED') {
+        await tokenStorage.clear();
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -78,6 +86,19 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     void refreshProfile();
+  }, [refreshProfile]);
+
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const wasInactive = appState.current !== 'active';
+      appState.current = nextAppState;
+      if (wasInactive && nextAppState === 'active') {
+        void refreshProfile();
+      }
+    });
+    return () => subscription.remove();
   }, [refreshProfile]);
 
   const value = useMemo<SessionContextValue>(

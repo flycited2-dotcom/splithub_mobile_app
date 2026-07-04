@@ -41,7 +41,14 @@ export default function OrderDetailsScreen() {
 
   async function repeat() {
     if (!order) return;
-    const result = await repeatOrder(order.id);
+    setError('');
+    let result;
+    try {
+      result = await repeatOrder(order.id);
+    } catch {
+      setError('Не удалось повторить заказ. Проверьте подключение.');
+      return;
+    }
     const products = new Map((snapshot?.products ?? []).map((product) => [product.id, product]));
     const items = result.items.flatMap(({ id, qty }) => {
       const product = products.get(id);

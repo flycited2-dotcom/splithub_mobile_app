@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -38,6 +38,15 @@ export default function CatalogScreen() {
   const sections = useMemo(() => groupProducts(products), [products]);
   const rows = useMemo(() => catalogRows(sections), [sections]);
   const filterLabel = quickFilters.find((item) => item.id === filter)?.label;
+  const flatListRef = useRef<FlatList<Product>>(null);
+  const groupedListRef = useRef<FlatList<CatalogRow>>(null);
+
+  // Switching the quick filter (or editing the search) must show results from
+  // the top; FlatList otherwise keeps the scroll offset of the previous list.
+  useEffect(() => {
+    flatListRef.current?.scrollToOffset({ animated: false, offset: 0 });
+    groupedListRef.current?.scrollToOffset({ animated: false, offset: 0 });
+  }, [filter, search, flatMode]);
 
   const add = useCallback((product: Product) => {
     addProduct(product);
@@ -130,6 +139,7 @@ export default function CatalogScreen() {
           keyExtractor={(product) => product.id}
           maxToRenderPerBatch={10}
           numColumns={2}
+          ref={flatListRef}
           removeClippedSubviews
           renderItem={renderFlatItem}
           windowSize={7}
@@ -142,6 +152,7 @@ export default function CatalogScreen() {
           key="catalog-grouped"
           keyExtractor={(row) => row.id}
           maxToRenderPerBatch={10}
+          ref={groupedListRef}
           removeClippedSubviews
           renderItem={renderGroupedItem}
           windowSize={7}
