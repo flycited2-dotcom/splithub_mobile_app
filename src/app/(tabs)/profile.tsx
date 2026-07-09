@@ -29,7 +29,7 @@ import { colors, spacing } from '../../lib/theme';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, loading, logout, updateEmail } = useSession();
+  const { user, loading, logout, updateEmail, deleteAccount } = useSession();
   const { snapshot, loading: catalogLoading, refresh: refreshCatalog } = useCatalog();
   const { favoriteIds } = useFavorites();
   const { unreadCount } = useNotifications();
@@ -117,6 +117,29 @@ export default function ProfileScreen() {
       await removeRegisteredDevice();
     } finally {
       await logout();
+    }
+  }
+
+  function confirmDeleteAccount() {
+    Alert.alert(
+      'Удалить аккаунт',
+      'Все личные данные будут безвозвратно удалены, история заказов останется в системе. Отменить это действие нельзя.',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Удалить', style: 'destructive', onPress: () => void deleteAccountAndCleanup() },
+      ],
+    );
+  }
+
+  async function deleteAccountAndCleanup() {
+    try {
+      await removeRegisteredDevice();
+    } finally {
+      try {
+        await deleteAccount();
+      } catch {
+        Alert.alert('Не удалось удалить аккаунт', 'Проверьте подключение и попробуйте снова.');
+      }
     }
   }
 
@@ -268,6 +291,9 @@ export default function ProfileScreen() {
       </Pressable>
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>
+      </Pressable>
+      <Pressable onPress={confirmDeleteAccount} style={styles.deleteAccount}>
+        <Text style={styles.deleteAccountText}>Удалить аккаунт</Text>
       </Pressable>
     </ScrollView>
   );
@@ -461,6 +487,15 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#B91C1C',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  deleteAccount: {
+    padding: spacing.md,
+  },
+  deleteAccountText: {
+    color: colors.muted,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
   },

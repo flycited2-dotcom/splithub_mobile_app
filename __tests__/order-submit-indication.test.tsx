@@ -72,6 +72,7 @@ beforeEach(() => {
     loading: false,
     login: jest.fn(),
     logout: jest.fn(),
+    deleteAccount: jest.fn(),
     refreshProfile: jest.fn(),
     register: jest.fn(),
     requestPasswordReset: jest.fn(),

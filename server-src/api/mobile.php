@@ -232,6 +232,25 @@ try {
         ok(['email' => $email]);
     }
 
+    if ($action === 'delete_account') {
+        requirePost();
+        $uid = requireMobileUser();
+        $db = getDB();
+        // Apple Guideline 5.1.1(v): real erasure, not deactivation. Orders/order_items/bonus_log
+        // stay (accounting records), but personal data is wiped and the row can never log in again.
+        $db->prepare("UPDATE users SET name=?, phone=?, telegram='', email='',
+                      password_hash=?, deleted_at=datetime('now') WHERE id=?")
+           ->execute([
+               'Удалённый пользователь',
+               'deleted-' . $uid,
+               password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT),
+               $uid,
+           ]);
+        $db->prepare('DELETE FROM mobile_sessions WHERE user_id=?')->execute([$uid]);
+        $db->prepare('DELETE FROM mobile_devices WHERE user_id=?')->execute([$uid]);
+        ok();
+    }
+
     fail('UNKNOWN_ACTION', 404);
 } catch (RuntimeException $e) {
     $statuses = [

@@ -43,6 +43,7 @@ type SessionContextValue = {
   updateEmail: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -145,6 +146,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
       logout: async () => {
         try {
           await api('logout', { method: 'POST' });
+        } finally {
+          await tokenStorage.clear();
+          setUser(null);
+        }
+      },
+      deleteAccount: async () => {
+        try {
+          await api('delete_account', { method: 'POST' });
         } finally {
           await tokenStorage.clear();
           setUser(null);

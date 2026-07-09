@@ -122,6 +122,9 @@ function getDB() {
         if (!in_array('email', $ucols)) {
             $db->exec("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
         }
+        if (!in_array('deleted_at', $ucols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN deleted_at TEXT DEFAULT NULL");
+        }
         $db->exec("CREATE TABLE IF NOT EXISTS password_resets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,

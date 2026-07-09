@@ -34,4 +34,38 @@ assert((int)$res['user']['id'] === $uid, 'user returned');
 assert(!isset($res['user']['password_hash']), 'no password hash leaked');
 $cnt = $db->prepare("SELECT COUNT(*) FROM mobile_sessions WHERE user_id=?"); $cnt->execute([$uid]);
 assert((int)$cnt->fetchColumn() === 1, 'session row created');
+
+// delete_account: anonymizes PII, blocks old password, keeps order history, revokes sessions/devices
+// (mirrors the UPDATE/DELETE statements in mobile.php action=delete_account)
+$db->prepare("INSERT INTO users(name,phone,email,password_hash) VALUES(?,?,?,?)")
+   ->execute(['Del', '79990003333', 'del@b.ru', password_hash('p', PASSWORD_BCRYPT)]);
+$delUid = (int)$db->lastInsertId();
+$db->prepare("INSERT INTO orders(user_id,total) VALUES(?,?)")->execute([$delUid, 1000]);
+issueMobileTokenForUser($delUid);
+$db->prepare("INSERT INTO mobile_devices(user_id,expo_token,platform) VALUES(?,?,?)")
+   ->execute([$delUid, 'tok123', 'ios']);
+
+$db->prepare("UPDATE users SET name=?, phone=?, telegram='', email='',
+              password_hash=?, deleted_at=datetime('now') WHERE id=?")
+   ->execute(['Удалённый пользователь', 'deleted-' . $delUid,
+              password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT), $delUid]);
+$db->prepare('DELETE FROM mobile_sessions WHERE user_id=?')->execute([$delUid]);
+$db->prepare('DELETE FROM mobile_devices WHERE user_id=?')->execute([$delUid]);
+
+$row = $db->prepare('SELECT name,phone,email,password_hash,deleted_at FROM users WHERE id=?');
+$row->execute([$delUid]);
+$after = $row->fetch();
+assert($after['name'] === 'Удалённый пользователь', 'name anonymized');
+assert($after['phone'] === 'deleted-' . $delUid, 'phone anonymized (frees original number)');
+assert($after['email'] === '', 'email cleared');
+assert($after['deleted_at'] !== null, 'deleted_at stamped');
+assert(!password_verify('p', $after['password_hash']), 'old password invalidated');
+
+$sessCnt = $db->prepare('SELECT COUNT(*) FROM mobile_sessions WHERE user_id=?'); $sessCnt->execute([$delUid]);
+assert((int)$sessCnt->fetchColumn() === 0, 'all sessions revoked');
+$devCnt = $db->prepare('SELECT COUNT(*) FROM mobile_devices WHERE user_id=?'); $devCnt->execute([$delUid]);
+assert((int)$devCnt->fetchColumn() === 0, 'push devices removed');
+$orderCnt = $db->prepare('SELECT COUNT(*) FROM orders WHERE user_id=?'); $orderCnt->execute([$delUid]);
+assert((int)$orderCnt->fetchColumn() === 1, 'order history preserved for accounting');
+
 echo "OK test_mobile_endpoints\n";
