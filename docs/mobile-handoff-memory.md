@@ -1,9 +1,70 @@
 # Mobile Handoff Memory
 
-Updated: 2026-07-04
+Updated: 2026-07-10
 
 > **Сначала читай `docs/START-HERE.md`** — одностраничный обзор проекта, состояние,
 > ссылки, как собрать/задеплоить. Этот файл — детальный исторический лог.
+
+## DONE (2026-07-10): iOS v1.1.1 build 10 пересабмичен в App Review (фикс 5.1.1(v))
+
+Итог: приложение снова в очереди ревью Apple — **WAITING_FOR_REVIEW**
+(submission `0f4537dc-515f-4cc2-bca1-b11614c74fae`, submitted 2026-07-10 09:22 UTC,
+версия "1.0" + build 10 (v1.1.1), заметки ревьюеру обновлены).
+Старый отклонённый сабмит `332a3a69` отменён (COMPLETE). Ждать вердикта Apple
+(обычно 1–3 дня). После аппрува: чистка тест-аккаунтов в проде
+(вкл. демо `+79000000099`), обновить Android APK на сайте (в v1.1.1 нет UI
+удаления аккаунта — код в ветке есть, нужна пересборка), RuStore.
+
+⚠️ Гочи ASC API, добытые в этом цикле (для будущих реджектов):
+- Пересабмит после реджекта НЕЛЬЗЯ сделать через старый reviewSubmission:
+  PATCH submitted=true → 409 «Version is not ready», DELETE item → 409
+  «Item was already submitted», POST item → 409 «does not allow adding more items».
+- Рабочий флоу: PATCH старый сабмит `canceled=true` → дождаться state=COMPLETE
+  (был CANCELING ~20-60 c) → POST новый reviewSubmission (platform IOS) →
+  POST reviewSubmissionItem с appStoreVersion → PATCH submitted=true.
+- Привязка нового билда к версии: PATCH /v1/appStoreVersions/{id}/relationships/build
+  → 204; версия при этом сама вышла из REJECTED в PREPARE_FOR_SUBMISSION.
+- `scripts/asc_api.py` с путём без `?` в Git Bash ломается MSYS-конвертацией
+  путей («unknown url type: c») — добавлять query-параметр или звать из Python.
+
+### Ход работ (2026-07-10)
+
+- Контекст: App Store submission `332a3a69` (build 8) отклонён — Guideline
+  5.1.1(v), нет удаления аккаунта из приложения. Состояние в ASC:
+  reviewSubmission `332a3a69-...` = `UNRESOLVED_ISSUES`, appStoreVersion
+  `c06be706-...` (versionString "1.0") = `REJECTED`.
+- Фикс закоммичен ранее: `cec6ce7` (клиент «Удалить аккаунт» в профиле +
+  `action=delete_account` в mobile.php: анонимизация, инвалидация пароля,
+  revoke сессий/девайсов) и `a88d92e` (деплой-скрипт).
+- ✅ Бэкенд задеплоен на прод — проверено вживую 2026-07-10:
+  `POST api/mobile.php?action=delete_account` без токена → 401 `AUTH_REQUIRED`
+  (а не `UNKNOWN_ACTION`).
+- ✅ Локальная база зелёная: jest 31 suites / 91 tests, typecheck, lint.
+- ✅ EAS iOS production build FINISHED 2026-07-10 (~12:00) с HEAD `a88d92e`:
+  build id `47c3f6bc-ae81-4b36-8b37-3368ddf5450c`
+  (https://expo.dev/accounts/alextsarev/projects/splithub/builds/47c3f6bc-ae81-4b36-8b37-3368ddf5450c).
+  Запуск: env `EXPO_ASC_API_KEY_PATH/KEY_ID/ISSUER_ID/...` (как в
+  `scripts/eas-ios-asc.ps1`) + `npx eas-cli@20.4.0 build --platform ios
+  --profile production --non-interactive --no-wait`.
+- ✅ Пользователь одобрил «весь цикл до ревью» (AskUserQuestion 2026-07-10).
+- ✅ Демо-аккаунт ревьюера `+79000000099` проверен вживую: login на проде ok
+  (user «Apple Review Demo»), токен отозван logout'ом.
+- ✅ Заметки для ревьюера (appStoreReviewDetail `00c1dfde-...`) обновлены через
+  ASC API: добавлен абзац про Profile → «Удалить аккаунт» + что номер
+  освобождается при удалении. PATCH → 200.
+- ✅ `eas submit` завершён: загружен в ASC как **v1.1.1 build 10** (не 9 —
+  autoIncrement), submission dcf6ac8b на expo.dev. Дальше:
+  1. Дождаться processingState=VALID билда 10 в ASC (`scripts/asc_api.py`,
+     GET /v1/builds?filter[app]=6785234307&filter[version]=10) — поллер в фоне.
+  2. Привязать build 10 к отклонённой appStoreVersion `c06be706-...`
+     (PATCH relationships/build).
+  3. Пересабмитить review: сначала попробовать PATCH reviewSubmission
+     `332a3a69-...` submitted=true; если Apple не даст — DELETE rejected item
+     `MzMyYTNhNjktMGMyMi00NGU2LWJmY2YtYjNhOGVmMDczODJmfDZ8ODg3NTUxMjU1`,
+     re-add версию, submit; либо новый reviewSubmission.
+  4. После аппрува: почистить тест-аккаунты в проде (вкл. `+79000000099` после
+     релиза), при желании обновить Android APK (в v1.1.1 на сайте нет UI удаления
+     аккаунта — код уже в ветке, нужна пересборка).
 
 ## CURRENT STATE (2026-07-04)
 - Android: **v1.1.1 (versionCode 3)** собрано/подписано/выложено: https://splithub.ru/app/
