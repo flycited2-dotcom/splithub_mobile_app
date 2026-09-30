@@ -1,0 +1,342 @@
+/* ============================================================
+   СПИНА: КВЕСТ v2 — стили
+   Яркая, «детская», но спокойная палитра. Крупные кнопки,
+   мягкие тени, скруглённые карточки, анимации без резкости.
+   ============================================================ */
+:root{
+  --bg:#f3f0ff; --bg2:#e8f7ff;
+  --card:#ffffff; --text:#1f1d3a; --muted:#6b6a86;
+  --primary:#6c5ce7; --primary-dark:#5344c9;
+  --coral:#ff7a59; --mint:#00c9a7; --sun:#ffc93c; --sky:#4facfe; --pink:#f368e0;
+  --danger:#ff5e5e; --line:rgba(31,29,58,.08);
+  --shadow:0 10px 30px rgba(108,92,231,.14);
+  --r:22px; --r-sm:14px;
+  --figure:#6c5ce7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:'Nunito',ui-rounded,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-weight:700;color:var(--text);
+  background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,#fff5ec 100%);
+  background-attachment:fixed;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font:inherit;cursor:pointer;color:inherit}
+button:disabled{opacity:.45;cursor:default}
+h1,h2,h3{font-weight:900;line-height:1.1}
+p{line-height:1.5}
+[hidden]{display:none!important}
+.app{max-width:520px;margin:0 auto;padding:14px 16px 60px;position:relative;z-index:1}
+.view{animation:viewIn .35s ease both}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- Верхняя панель ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{font-weight:900;font-size:18px;letter-spacing:.5px;color:var(--primary)}
+.brand span{color:var(--coral)}
+.topbar-actions{display:flex;gap:8px}
+.icon-btn{border:0;background:var(--card);border-radius:14px;padding:9px 12px;font-size:18px;box-shadow:0 4px 14px rgba(31,29,58,.08);line-height:1}
+.icon-btn.back{font-size:15px;font-weight:800;color:var(--primary)}
+.icon-btn:active{transform:scale(.95)}
+
+/* ---------- Кнопки ---------- */
+.btn{border:0;border-radius:18px;padding:14px 16px;font-weight:900;font-size:16px;transition:transform .1s,box-shadow .2s}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn.big{width:100%;padding:17px 18px;font-size:18px;margin-top:14px}
+.btn.primary{background:linear-gradient(135deg,var(--primary),#8b7cf6);color:#fff;box-shadow:0 10px 24px rgba(108,92,231,.35)}
+.btn.secondary{background:#fff;color:var(--primary);border:2px solid #e4e0ff}
+.btn.danger{width:100%;margin-top:12px;background:#fff1f1;color:#d64545;border:2px solid #ffd4d4;font-size:15px}
+.link-btn{display:block;margin:10px auto 0;border:0;background:transparent;color:var(--muted);text-decoration:underline;font-size:13px;font-weight:700}
+
+/* ---------- Карточки ---------- */
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.card.soft{background:#fff8f0;box-shadow:none;border:2px solid #ffe4c8;margin:14px 0}
+.section-title{font-size:15px;font-weight:900;margin:22px 4px 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.page-title{margin:8px 0 14px;font-size:28px}
+
+/* ---------- Онбординг ---------- */
+#onboardView{padding-top:18px}
+.onboard-art{font-size:64px;text-align:center;margin:10px 0}
+#onboardView h1{text-align:center;font-size:28px;margin:6px 0 8px}
+.lead{color:var(--muted);text-align:center;margin:0 0 6px}
+.flags{margin:8px 0 0;padding-left:20px;color:#7a4a1e;font-weight:700;line-height:1.5}
+.check{display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:var(--r-sm);padding:12px 14px;margin:10px 0;box-shadow:var(--shadow);line-height:1.4;font-size:14px}
+.check input{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--primary)}
+.input{width:100%;border:2px solid #e4e0ff;border-radius:16px;padding:14px 16px;font:inherit;font-size:18px;font-weight:800;background:#fff;color:var(--text);outline:0;margin:6px 0 14px}
+.input:focus{border-color:var(--primary)}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hero-pick{border:3px solid transparent;background:var(--card);border-radius:20px;padding:12px 6px;text-align:center;box-shadow:var(--shadow);transition:transform .15s}
+.hero-pick span{display:block;font-size:44px;line-height:1.1}
+.hero-pick small{display:block;margin-top:6px;font-size:12px;color:var(--muted);font-weight:800}
+.hero-pick.active{border-color:var(--primary);transform:scale(1.05);background:#f6f3ff}
+
+/* ---------- Карточка героя ---------- */
+.hero-card{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+.hero-avatar{width:68px;height:68px;border-radius:22px;display:grid;place-items:center;font-size:40px;background:linear-gradient(135deg,#ffe9d6,#ffd6f3);animation:bob 3s ease-in-out infinite;flex:0 0 auto}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-3deg)}}
+.hero-info{flex:1;min-width:0}
+.hero-name{font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-level{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.xp-track{height:10px;background:#efecff;border-radius:10px;overflow:hidden}
+.xp-bar{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:10px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.xp-text{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ---------- Сегодняшняя миссия ---------- */
+.today-card{margin-top:14px;background:linear-gradient(135deg,#6c5ce7 0%,#a29bfe 60%,#81ecec 130%);color:#fff;border-radius:26px;padding:18px;box-shadow:0 16px 40px rgba(108,92,231,.35);position:relative;overflow:hidden}
+.today-card::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12)}
+.today-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.today-label{font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:.85}
+.today-title{font-size:22px;font-weight:900;margin-top:4px;line-height:1.15}
+.today-meta{font-size:13px;opacity:.9;margin-top:4px}
+.streak-badge{background:rgba(255,255,255,.18);border-radius:18px;padding:8px 12px;text-align:center;min-width:64px;backdrop-filter:blur(4px)}
+.streak-badge .flame{font-size:20px;display:block}
+.streak-badge b{font-size:20px;display:block;line-height:1}
+.streak-badge small{font-size:10px;opacity:.85}
+.streak-badge.hot .flame{animation:flame .8s ease-in-out infinite alternate}
+@keyframes flame{to{transform:scale(1.2) rotate(-6deg)}}
+.today-card .btn.primary{background:#fff;color:var(--primary);box-shadow:0 8px 20px rgba(0,0,0,.15);position:relative;z-index:1}
+.week{display:flex;justify-content:space-between;gap:6px;margin-top:14px;position:relative;z-index:1}
+.day{flex:1;text-align:center;font-size:11px;opacity:.9}
+.day i{display:block;width:28px;height:28px;margin:0 auto 4px;border-radius:50%;background:rgba(255,255,255,.2);font-style:normal;display:grid;place-items:center;font-size:14px}
+.day.done i{background:var(--sun);color:#7a4a00;box-shadow:0 0 0 3px rgba(255,201,60,.35)}
+.day.today i{outline:2px solid #fff}
+
+/* ---------- Статистика ---------- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
+.stat{background:var(--card);border-radius:18px;padding:12px 8px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:24px;line-height:1.1}
+.stat span{color:var(--muted);font-size:12px}
+
+/* ---------- Карта миссий ---------- */
+.lesson-map{position:relative;display:grid;gap:12px;padding:6px 0}
+.lesson-map::before{content:'';position:absolute;left:31px;top:20px;bottom:20px;border-left:4px dashed #d9d3ff;z-index:0}
+.lesson-card{position:relative;z-index:1;width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:var(--card);border:0;border-radius:20px;padding:12px 14px;box-shadow:var(--shadow);transition:transform .15s}
+.lesson-card:active{transform:scale(.98)}
+.lesson-card.locked{opacity:.6;background:#f6f5fb;box-shadow:none}
+.lesson-card.next{outline:3px solid var(--sun);box-shadow:0 10px 30px rgba(255,201,60,.35)}
+.lesson-num{width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;border-radius:14px;background:var(--lc,#efecff);color:#fff;font-weight:900;font-size:16px;box-shadow:0 4px 10px rgba(0,0,0,.12)}
+.lesson-card.locked .lesson-num{background:#d8d6e6}
+.lesson-copy{flex:1;min-width:0}
+.lesson-title{font-weight:900;font-size:15px}
+.lesson-meta{color:var(--muted);font-size:12px;margin-top:2px}
+.stars{color:#ffc93c;letter-spacing:1px;font-size:17px;text-shadow:0 1px 0 rgba(0,0,0,.08);flex:0 0 auto}
+.stars .off{color:#dcdae8;text-shadow:none}
+
+/* ---------- Экран миссии ---------- */
+.lesson-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.lesson-steps{display:flex;gap:5px;flex:1}
+.lesson-steps i{flex:1;height:8px;border-radius:8px;background:#e2dfff}
+.lesson-steps i.done{background:var(--mint)}
+.lesson-steps i.cur{background:var(--primary);animation:pulseStep 1.4s ease-in-out infinite}
+@keyframes pulseStep{50%{opacity:.55}}
+.lesson-head{display:flex;gap:12px;align-items:center}
+.lesson-head .badge{font-size:36px}
+.lesson-head h2{margin:0;font-size:20px}
+.counter{color:var(--muted);font-size:13px}
+.exercise{margin-top:12px;background:var(--card);border-radius:26px;padding:16px;box-shadow:var(--shadow)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-block;padding:6px 11px;border-radius:999px;font-size:12px;font-weight:900}
+.chip.phase{background:#e6fbf5;color:#0b8f6f}
+.chip.pos{background:#fff2e5;color:#b25a12}
+.exercise h3{font-size:23px;margin:10px 0 6px}
+.how{color:#4a4868;margin:0 0 12px;font-size:15px;font-weight:700}
+
+/* Демонстрация */
+.demo{height:200px;border-radius:20px;background:radial-gradient(circle at 50% 40%,#fff 0,#f3f0ff 60%,#e8f7ff 100%);display:grid;place-items:center;position:relative;overflow:hidden;border:2px solid #efecff}
+.demo svg{width:100%;height:100%;max-width:300px}
+.demo .floor{stroke:#d9d3ff;stroke-width:4;stroke-linecap:round}
+.demo .wallline{stroke:#ffd6b8;stroke-width:6;stroke-linecap:round}
+.demo .chair{fill:none;stroke:#ffbf86;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.fig{stroke:var(--figure);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fig.head{fill:var(--figure);stroke:var(--figure);stroke-width:4}
+.fig.accent{stroke:var(--coral)}
+.fig.glow{stroke:var(--mint);stroke-width:9;opacity:.35}
+.demo-label{position:absolute;bottom:8px;right:12px;font-size:11px;color:var(--muted);font-weight:800}
+.g{transform-box:fill-box;transform-origin:center}
+/* анимации фигурок */
+.an-walk-l{transform-origin:50% 0;animation:swingA 1.1s ease-in-out infinite alternate}
+.an-walk-r{transform-origin:50% 0;animation:swingB 1.1s ease-in-out infinite alternate}
+.an-arm-l{transform-origin:50% 0;animation:swingB 1.1s ease-in-out infinite alternate}
+.an-arm-r{transform-origin:50% 0;animation:swingA 1.1s ease-in-out infinite alternate}
+@keyframes swingA{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+@keyframes swingB{from{transform:rotate(18deg)}to{transform:rotate(-18deg)}}
+.an-shrug{animation:shrug 1.6s ease-in-out infinite alternate}
+@keyframes shrug{to{transform:translateY(-9px)}}
+.an-rise{animation:rise 2.2s ease-in-out infinite alternate}
+@keyframes rise{to{transform:translateY(-6px)}}
+.an-breath{transform-origin:center;animation:breath 5s ease-in-out infinite}
+@keyframes breath{40%{transform:scale(1.12)}}
+.an-cat{transform-origin:center;animation:cat 2.4s ease-in-out infinite alternate}
+@keyframes cat{to{transform:translateY(-10px)}}
+.an-rotate{transform-origin:50% 100%;animation:rot 2.2s ease-in-out infinite alternate}
+@keyframes rot{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+.an-slide{animation:slide 2.4s ease-in-out infinite alternate}
+@keyframes slide{to{transform:translateY(-26px)}}
+.an-leg-up{transform-origin:100% 50%;animation:legUp 2s ease-in-out infinite alternate}
+@keyframes legUp{to{transform:rotate(-40deg)}}
+.an-bridge{animation:bridge 2.2s ease-in-out infinite alternate}
+@keyframes bridge{to{transform:translateY(-22px)}}
+.an-push{animation:push 1.8s ease-in-out infinite alternate}
+@keyframes push{to{transform:translateX(-14px)}}
+.an-bird-leg{transform-origin:0 50%;animation:birdLeg 2.4s ease-in-out infinite alternate}
+@keyframes birdLeg{to{transform:rotate(-70deg)}}
+.an-bird-arm{transform-origin:100% 50%;animation:birdArm 2.4s ease-in-out infinite alternate}
+@keyframes birdArm{to{transform:rotate(70deg)}}
+.an-balance{transform-origin:50% 0;animation:balance 2s ease-in-out infinite alternate}
+@keyframes balance{to{transform:rotate(-35deg)}}
+.an-squat{animation:squat 1.8s ease-in-out infinite alternate}
+@keyframes squat{to{transform:translateY(18px)}}
+.an-knee{transform-origin:50% 0;animation:knee 1.8s ease-in-out infinite alternate}
+@keyframes knee{to{transform:rotate(25deg)}}
+.an-lean{transform-origin:50% 100%;animation:lean 2.4s ease-in-out infinite alternate}
+@keyframes lean{to{transform:rotate(18deg)}}
+.an-abduct{transform-origin:50% 0;animation:abduct 1.8s ease-in-out infinite alternate}
+@keyframes abduct{to{transform:rotate(-28deg)}}
+.an-chin{animation:chin 2s ease-in-out infinite alternate}
+@keyframes chin{to{transform:translateX(-7px)}}
+.an-scap{animation:scap 2s ease-in-out infinite alternate}
+@keyframes scap{to{transform:translateY(5px) scaleX(.9)}}
+.an-armraise{transform-origin:50% 0;animation:armraise 4s ease-in-out infinite alternate}
+@keyframes armraise{to{transform:rotate(-95deg)}}
+.an-sitstand{animation:sitstand 2.4s ease-in-out infinite alternate}
+@keyframes sitstand{to{transform:translateY(-34px)}}
+.an-bob{animation:rise 1.6s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){
+  .demo [class*="an-"]{animation-duration:6s}
+  .hero-avatar,.streak-badge.hot .flame{animation:none}
+}
+
+/* стороны */
+.side-row{display:flex;gap:8px;margin-top:12px}
+.side{flex:1;text-align:center;padding:8px;border-radius:12px;background:#f1f0fa;color:var(--muted);font-size:13px;font-weight:900;transition:.3s}
+.side.active{background:var(--sun);color:#6d4300;transform:scale(1.03)}
+
+/* таймер-кольцо */
+.timer-wrap{position:relative;width:200px;height:200px;margin:14px auto 6px}
+.ring{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#efecff;stroke-width:9}
+.ring-fg{fill:none;stroke:url(#ringGrad);stroke:var(--primary);stroke-width:9;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:0;transition:stroke-dashoffset .25s linear}
+.ring-fg.warn{stroke:var(--coral)}
+.timer-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.timer{font-size:44px;font-weight:900;letter-spacing:1px;line-height:1}
+.timer-hint{color:var(--muted);font-size:12px;margin-top:4px}
+.pacer{position:absolute;inset:14px;border-radius:50%;display:grid;place-items:center;pointer-events:none}
+.pacer-circle{position:absolute;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(0,201,167,.35),rgba(79,172,254,.15));transform:scale(1)}
+.pacer.run .pacer-circle{animation:pace 10s ease-in-out infinite}
+@keyframes pace{0%{transform:scale(1)}40%{transform:scale(2.6)}100%{transform:scale(1)}}
+.pacer-text{position:absolute;bottom:22px;font-size:13px;font-weight:900;color:#0b8f6f;background:#fff;padding:3px 10px;border-radius:999px;box-shadow:var(--shadow)}
+.timer-wrap.paced .timer{font-size:34px}
+.timer-wrap.paced .timer-hint{display:none}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.feedback{margin-top:14px;padding:12px;border-radius:18px;background:#f7f6ff;text-align:center;animation:viewIn .3s ease}
+.feedback-q{font-weight:900;margin-bottom:8px}
+.feedback-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fb{border:2px solid transparent;background:#fff;border-radius:16px;padding:8px 4px;font-size:12px;font-weight:900;color:var(--muted);box-shadow:var(--shadow)}
+.fb span{display:block;font-size:28px;line-height:1.2}
+.fb.active{border-color:var(--primary);color:var(--primary);background:#f6f3ff}
+.fb[data-fb="pain"].active{border-color:var(--danger);color:#d64545;background:#fff1f1}
+
+/* ---------- Подготовка (обратный отсчёт) ---------- */
+.ready{position:fixed;inset:0;z-index:50;background:rgba(108,92,231,.92);display:grid;place-items:center;color:#fff;text-align:center;backdrop-filter:blur(6px)}
+.ready-label{font-size:20px;font-weight:900;opacity:.9}
+.ready-num{font-size:120px;font-weight:900;line-height:1;animation:pop .9s ease infinite}
+@keyframes pop{0%{transform:scale(.7);opacity:.4}30%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
+.ready-pos{font-size:18px;font-weight:800;background:rgba(255,255,255,.18);border-radius:999px;padding:8px 18px;display:inline-block;margin-top:14px}
+
+/* ---------- Финал ---------- */
+.finish{text-align:center;padding:24px 12px 10px;background:var(--card);border-radius:26px;box-shadow:var(--shadow);margin-top:12px;position:relative}
+.finish-hero{font-size:72px;animation:jump 1.2s ease-in-out infinite}
+@keyframes jump{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-14px) rotate(-8deg)}60%{transform:translateY(0) rotate(4deg)}}
+.finish h3{font-size:26px;margin:6px 0}
+.finish-stars{font-size:44px;display:flex;justify-content:center;gap:6px}
+.finish-stars span{color:#dcdae8;transform:scale(0);animation:starIn .5s cubic-bezier(.2,1.4,.4,1) forwards}
+.finish-stars span.on{color:#ffc93c;text-shadow:0 2px 0 #e0a800}
+.finish-stars span:nth-child(2){animation-delay:.25s}.finish-stars span:nth-child(3){animation-delay:.5s}
+@keyframes starIn{to{transform:scale(1)}}
+.finish-text{color:var(--muted);margin:8px 0 14px}
+.reward-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.reward{background:#f7f6ff;border-radius:16px;padding:10px 6px}
+.reward b{display:block;font-size:22px;color:var(--primary)}
+.reward span{font-size:11px;color:var(--muted)}
+.finish-ach{margin-top:14px;display:grid;gap:8px}
+.ach-toast{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#fff8dc,#ffe9b3);border-radius:16px;padding:10px 12px;text-align:left;animation:viewIn .5s ease both}
+.ach-toast .i{font-size:32px}
+.ach-toast b{display:block;font-size:14px}
+.ach-toast small{color:#7a5a00;font-size:12px}
+.level-up{margin-top:12px;background:linear-gradient(135deg,var(--mint),var(--sky));color:#fff;border-radius:16px;padding:12px;font-weight:900;animation:viewIn .5s ease both}
+
+/* ---------- Трофеи ---------- */
+.ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.ach{background:var(--card);border-radius:18px;padding:12px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
+.ach .i{font-size:32px;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:#fff8dc}
+.ach.locked{opacity:.55;filter:grayscale(1)}
+.ach b{display:block;font-size:13px}
+.ach small{color:var(--muted);font-size:11px;line-height:1.3;display:block}
+.level-list{display:grid;gap:8px}
+.lvl{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:10px 14px;box-shadow:var(--shadow)}
+.lvl .i{font-size:26px}
+.lvl b{flex:1}
+.lvl small{color:var(--muted)}
+.lvl.reached{border:2px solid var(--mint)}
+.lvl.current{background:#eefcf8}
+
+/* ---------- Безопасность ---------- */
+.safety{font-size:12px;color:var(--muted);line-height:1.45;margin:20px 4px}
+.safety b{color:var(--text)}
+
+/* ---------- Диалоги ---------- */
+dialog{max-width:440px;width:calc(100% - 28px);border:0;border-radius:26px;background:var(--card);color:var(--text);padding:20px;box-shadow:0 25px 80px rgba(31,29,58,.35);font-family:inherit}
+dialog.wide{max-height:88vh;overflow:auto}
+dialog::backdrop{background:rgba(31,29,58,.55);backdrop-filter:blur(4px)}
+dialog h3{margin:4px 0 8px;font-size:22px}
+dialog p{color:var(--muted);margin:0 0 6px}
+.modal-icon{font-size:48px;text-align:center}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.pin-gate{text-align:center}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin:12px 0}
+.pin-dots span{width:16px;height:16px;border-radius:50%;background:#e4e0ff}
+.pin-dots span.on{background:var(--primary)}
+.pin-dots.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:0 auto}
+.pin-pad button{border:0;background:#f4f2ff;border-radius:16px;padding:14px;font-size:22px;font-weight:900}
+.pin-pad button:active{background:#e4e0ff}
+.tabs{display:flex;gap:6px;background:#f4f2ff;border-radius:14px;padding:4px;margin-bottom:12px}
+.tab{flex:1;border:0;background:transparent;border-radius:11px;padding:9px;font-weight:900;color:var(--muted)}
+.tab.active{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin:8px 0;font-size:14px}
+.kv span{color:var(--muted)}
+.kv b{text-align:right}
+.hist{display:grid;gap:8px;max-height:44vh;overflow:auto}
+.hrow{display:flex;gap:10px;align-items:center;background:#f7f6ff;border-radius:14px;padding:10px 12px;font-size:13px}
+.hrow .d{color:var(--muted);min-width:64px}
+.hrow .t{flex:1;font-weight:800}
+.hrow .p{color:#d64545;font-weight:900}
+.hrow.pain{background:#fff1f1}
+.pain-list{margin:6px 0 0;padding-left:18px;color:#a33;font-size:13px;line-height:1.5}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.setting small{display:block;color:var(--muted);font-weight:700;font-size:12px}
+.switch{position:relative;width:52px;height:30px;flex:0 0 auto}
+.switch input{opacity:0;width:0;height:0}
+.switch i{position:absolute;inset:0;border-radius:30px;background:#dcdae8;transition:.2s}
+.switch i::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.switch input:checked+i{background:var(--mint)}
+.switch input:checked+i::after{transform:translateX(22px)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn.small{padding:10px;font-size:13px;border-radius:14px}
+.btn.ghost{background:#f4f2ff;color:var(--primary)}
+.btn.ghost.red{background:#fff1f1;color:#d64545}
+.warn-box{background:#fff8f0;border:2px solid #ffe4c8;border-radius:14px;padding:10px 12px;font-size:13px;color:#7a4a1e;margin-top:10px;line-height:1.45}
+.pin-set{display:flex;gap:8px;align-items:center;margin-top:8px}
+.pin-set input{flex:1;border:2px solid #e4e0ff;border-radius:12px;padding:10px;font:inherit;font-size:16px;letter-spacing:6px;text-align:center}
+
+/* ---------- Тост ---------- */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;font-size:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:viewIn .3s ease;max-width:calc(100% - 32px);text-align:center}
+
+/* ---------- Конфетти ---------- */
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+@media (min-width:700px){.app{padding-top:28px}}
+@media (max-width:360px){.timer-wrap{width:170px;height:170px}.timer{font-size:38px}.hero-grid{grid-template-columns:repeat(2,1fr)}}

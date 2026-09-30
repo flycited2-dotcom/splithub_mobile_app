@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#6c5ce7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Спина: Квест — интерактивные ежедневные занятия для осанки ребёнка с наградами, героем и родительским контролем.">
+<title>Спина: Квест</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main class="app">
+
+  <!-- ===================== ОНБОРДИНГ ===================== -->
+  <section id="onboardView" class="view" hidden>
+    <div class="onboard-step" data-step="1">
+      <div class="onboard-art">🧑‍⚕️</div>
+      <h1>Привет, родитель!</h1>
+      <p class="lead">Это игровые ежедневные занятия для спины. Перед стартом убедитесь, что упражнения подходят вашему ребёнку.</p>
+      <div class="card soft">
+        <b>Остановите занятия и обратитесь к врачу, если есть:</b>
+        <ul id="redFlagsList" class="flags"></ul>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="consentDoctor">
+        <span>Занятия согласованы с врачом (ортопедом / физиотерапевтом), противопоказаний нет.</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="consentAdult">
+        <span>Ребёнок занимается в присутствии взрослого, и мы остановимся при боли или дискомфорте.</span>
+      </label>
+      <button class="btn primary big" id="onboardNext1" disabled>Дальше →</button>
+    </div>
+
+    <div class="onboard-step" data-step="2" hidden>
+      <div class="onboard-art">🎒</div>
+      <h1>Как тебя зовут?</h1>
+      <p class="lead">Дальше — для ребёнка. Выбери имя и своего героя-помощника.</p>
+      <input type="text" id="childName" class="input" maxlength="20" placeholder="Твоё имя" autocomplete="off">
+      <div class="hero-grid" id="heroGrid"></div>
+      <button class="btn primary big" id="onboardStart" disabled>Начать приключение 🚀</button>
+    </div>
+  </section>
+
+  <!-- ===================== ГЛАВНАЯ ===================== -->
+  <section id="homeView" class="view" hidden>
+    <header class="topbar">
+      <div class="brand">СПИНА<span>:КВЕСТ</span></div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="soundBtn" aria-label="Звук" title="Звук">🔊</button>
+        <button class="icon-btn" id="trophyBtn" aria-label="Трофеи" title="Трофеи">🏆</button>
+        <button class="icon-btn" id="parentBtn" aria-label="Родителю" title="Родителю">👪</button>
+      </div>
+    </header>
+
+    <div class="hero-card" id="heroCard">
+      <div class="hero-avatar" id="heroAvatar">🦊</div>
+      <div class="hero-info">
+        <div class="hero-name" id="heroName">Герой</div>
+        <div class="hero-level" id="heroLevel">🌱 Новичок · уровень 1</div>
+        <div class="xp-track"><div class="xp-bar" id="xpBar"></div></div>
+        <div class="xp-text" id="xpText">0 / 120 опыта</div>
+      </div>
+    </div>
+
+    <div class="today-card" id="todayCard">
+      <div class="today-top">
+        <div>
+          <div class="today-label" id="todayLabel">Сегодняшняя миссия</div>
+          <div class="today-title" id="todayTitle">Миссия 1</div>
+          <div class="today-meta" id="todayMeta">12 мин · 5 упражнений</div>
+        </div>
+        <div class="streak-badge" id="streakBadge"><span class="flame">🔥</span><b id="streakNum">0</b><small>дней</small></div>
+      </div>
+      <div class="week" id="weekStrip"></div>
+      <button class="btn primary big" id="todayBtn">▶ Начать миссию</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="statsStars">0</b><span>⭐ звёзд</span></div>
+      <div class="stat"><b id="statsDone">0</b><span>🗺️ миссий</span></div>
+      <div class="stat"><b id="statsMinutes">0</b><span>⏱️ минут</span></div>
+    </div>
+
+    <div class="section-title">Карта приключения</div>
+    <div id="lessonMap" class="lesson-map"></div>
+
+    <p class="safety"><b>Важно:</b> приложение содержит общие симметричные упражнения низкой интенсивности для осанки. Оно не диагностирует и не лечит сколиоз и не подбирает направление коррекции дуги. Индивидуальные сколиоз‑специфические упражнения назначает детский ортопед / физиотерапевт после осмотра ребёнка.</p>
+  </section>
+
+  <!-- ===================== ТРОФЕИ ===================== -->
+  <section id="trophyView" class="view" hidden>
+    <button class="icon-btn back" id="trophyBack">← Назад</button>
+    <h1 class="page-title">🏆 Мои трофеи</h1>
+    <div class="section-title">Достижения</div>
+    <div id="achievementGrid" class="ach-grid"></div>
+    <div class="section-title">Уровни героя</div>
+    <div id="levelList" class="level-list"></div>
+  </section>
+
+  <!-- ===================== МИССИЯ ===================== -->
+  <section id="lessonView" class="view" hidden>
+    <div class="lesson-top">
+      <button class="icon-btn back" id="backBtn">← Карта</button>
+      <div class="lesson-steps" id="lessonSteps"></div>
+    </div>
+
+    <div class="lesson-head">
+      <div class="badge" id="lessonBadge">🌟</div>
+      <div><h2 id="lessonTitle"></h2><div id="counter" class="counter"></div></div>
+    </div>
+
+    <div id="exercisePanel" class="exercise">
+      <div class="chips">
+        <span id="phase" class="chip phase"></span>
+        <span id="position" class="chip pos"></span>
+      </div>
+      <h3 id="exerciseName"></h3>
+      <p id="exerciseHow" class="how"></p>
+
+      <div id="demoHost" class="demo"></div>
+
+      <div id="sideRow" class="side-row" hidden>
+        <span class="side" data-side="L">◀ Левая</span>
+        <span class="side" data-side="R">Правая ▶</span>
+      </div>
+
+      <div class="timer-wrap">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="timer-center">
+          <div id="timer" class="timer">0:00</div>
+          <div id="timerHint" class="timer-hint">нажми «Начать»</div>
+        </div>
+        <div id="breathPacer" class="pacer" hidden><div class="pacer-circle"></div><div class="pacer-text" id="pacerText">вдох</div></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn primary">▶ Начать</button>
+        <button id="nextBtn" class="btn secondary" disabled>Дальше →</button>
+      </div>
+
+      <div id="feedbackRow" class="feedback" hidden>
+        <div class="feedback-q">Как прошло?</div>
+        <div class="feedback-btns">
+          <button class="fb" data-fb="ok"><span>😊</span>Легко</button>
+          <button class="fb" data-fb="tired"><span>😅</span>Устал(а)</button>
+          <button class="fb" data-fb="pain"><span>😣</span>Больно</button>
+        </div>
+      </div>
+
+      <button id="painBtn" class="btn danger">⚠ Мне больно / неприятно</button>
+      <button id="skipBtn" class="link-btn">Пропустить это упражнение</button>
+    </div>
+
+    <div id="finishPanel" class="finish" hidden>
+      <div class="finish-hero" id="finishHero">🦊</div>
+      <h3 id="finishTitle">Миссия завершена!</h3>
+      <div id="finishStars" class="finish-stars"><span>★</span><span>★</span><span>★</span></div>
+      <p id="finishText" class="finish-text"></p>
+      <div class="reward-row">
+        <div class="reward"><b id="finishXp">+0</b><span>опыта</span></div>
+        <div class="reward"><b id="finishStreak">0</b><span>дней подряд</span></div>
+        <div class="reward"><b id="finishMinutes">0</b><span>минут</span></div>
+      </div>
+      <div id="finishAch" class="finish-ach" hidden></div>
+      <div id="levelUp" class="level-up" hidden></div>
+      <button id="closeFinish" class="btn primary big">На карту 🗺️</button>
+    </div>
+  </section>
+</main>
+
+<!-- Подготовка: обратный отсчёт перед упражнением -->
+<div id="readyOverlay" class="ready" hidden>
+  <div class="ready-inner">
+    <div class="ready-label" id="readyLabel">Приготовься</div>
+    <div class="ready-num" id="readyNum">3</div>
+    <div class="ready-pos" id="readyPos"></div>
+  </div>
+</div>
+
+<!-- Остановка при боли -->
+<dialog id="painModal">
+  <div class="modal-icon">🛑</div>
+  <h3>Остановить упражнение?</h3>
+  <p>При боли, онемении, слабости, головокружении или необычном ухудшении самочувствия упражнение лучше прекратить и позвать взрослого. Это правильный поступок героя.</p>
+  <div class="modal-actions">
+    <button id="cancelPain" class="btn secondary">Вернуться</button>
+    <button id="confirmPain" class="btn primary">Остановить занятие</button>
+  </div>
+</dialog>
+
+<!-- Родительский раздел -->
+<dialog id="parentModal" class="wide">
+  <div id="pinGate" class="pin-gate">
+    <div class="modal-icon">🔒</div>
+    <h3 id="pinTitle">Раздел для родителей</h3>
+    <p id="pinHint">Введите PIN‑код</p>
+    <div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div>
+    <div class="pin-pad" id="pinPad"></div>
+    <button id="pinCancel" class="link-btn">Закрыть</button>
+  </div>
+  <div id="parentBody" hidden>
+    <div class="tabs" id="parentTabs">
+      <button class="tab active" data-tab="overview">Обзор</button>
+      <button class="tab" data-tab="history">История</button>
+      <button class="tab" data-tab="settings">Настройки</button>
+    </div>
+    <div class="tab-panel" data-panel="overview" id="parentOverview"></div>
+    <div class="tab-panel" data-panel="history" id="parentHistory" hidden></div>
+    <div class="tab-panel" data-panel="settings" id="parentSettings" hidden></div>
+    <button id="closeParent" class="btn primary">Закрыть</button>
+  </div>
+</dialog>
+
+<!-- Тост -->
+<div id="toast" class="toast" hidden></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
