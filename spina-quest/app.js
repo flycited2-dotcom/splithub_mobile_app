@@ -919,7 +919,10 @@ function exportData() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `spina-quest-${todayStr()}.json`; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-  toast('Файл с данными сохранён');
+  // запасной путь (если скачивание заблокировано): копируем JSON в буфер обмена
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(data).then(() => toast('Данные сохранены в файл и скопированы в буфер обмена'), () => toast('Файл с данными сохранён'));
+  } else toast('Файл с данными сохранён');
 }
 
 /* ------------------------------------------------------------
