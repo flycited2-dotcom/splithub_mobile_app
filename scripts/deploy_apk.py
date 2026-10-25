@@ -1,93 +1,106 @@
 #!/usr/bin/env python3
-"""Залить подписанный release APK + страницу установки на splithub.ru.
+"""Залить подписанный release APK + страницу установки + version.json на splithub.ru.
 
-Креды НЕ хранятся в коде. Берутся из (в порядке приоритета):
-  1) env SPLITHUB_SSH_USER / SPLITHUB_SSH_PASS
-  2) JSON-файл вне репозитория: ~/.splithub-deploy.json
-     {"host":..., "user":..., "password":..., "base":...}
+Креды НЕ хранятся в коде — см. scripts/deploy_config.py.
 
 Заливает:
   <base>/app/splithub.apk   <- собранный app-release.apk
-  <base>/app/index.html     <- dist/app/index.html (страница установки)
+  <base>/app/index.html     <- web/app/index.html (страница установки)
+  <base>/app/version.json   <- номер версии для автообновления в приложении
 
-После заливки проверяет размер файла на сервере, осматривает корень сайта
-(llms.txt / robots.txt / privacy) и печатает публичный URL.
+Отказывается заливать APK, подписанный debug-ключом: такой APK не встанет
+поверх версий, подписанных release.jks, и автообновление у пользователей сломается.
+
+Запуск: python scripts/deploy_apk.py --notes "Что нового" [--min-version-code N]
 """
-import os, sys, json, hashlib
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+import sys
 from pathlib import Path
 
-try:
-    import paramiko
-except ImportError:
-    sys.exit("paramiko не установлен: pip install paramiko")
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deploy_config import REPO, connect  # noqa: E402
 
-REPO = Path(__file__).resolve().parents[1]
 APK = REPO / "android/app/build/outputs/apk/release/app-release.apk"
 PAGE = REPO / "web/app/index.html"
+GRADLE = REPO / "android/app/build.gradle"
+APK_URL = "https://splithub.ru/app/splithub.apk"
 
-cfg = {}
-cfg_path = Path.home() / ".splithub-deploy.json"
-if cfg_path.exists():
-    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
 
-host = os.environ.get("SPLITHUB_SSH_HOST") or cfg.get("host", "splithub.ru")
-user = os.environ.get("SPLITHUB_SSH_USER") or cfg.get("user")
-pw = os.environ.get("SPLITHUB_SSH_PASS") or cfg.get("password")
-base = os.environ.get("SPLITHUB_BASE") or cfg.get("base")
+def build_version():
+    text = GRADLE.read_text(encoding="utf-8")
+    code = int(re.search(r"versionCode\s+(\d+)", text).group(1))
+    name = re.search(r'versionName\s+"([^"]+)"', text).group(1)
+    return code, name
 
-if not user or not pw:
-    sys.exit("Нет кредов: задай env SPLITHUB_SSH_USER/PASS или ~/.splithub-deploy.json")
-if not APK.exists():
-    sys.exit(f"APK не найден: {APK}")
-if not PAGE.exists():
-    sys.exit(f"Страница не найдена: {PAGE}")
 
-apk_size = APK.stat().st_size
-apk_sha = hashlib.sha256(APK.read_bytes()).hexdigest()
-print(f"Локальный APK: {apk_size} байт, sha256={apk_sha[:16]}…")
+def signer_subject():
+    sdk = Path.home() / "AppData/Local/Android/Sdk/build-tools"
+    tools = sorted(sdk.glob("*/apksigner.bat")) or sorted(sdk.glob("*/apksigner"))
+    if not tools:
+        sys.exit("apksigner не найден — не могу проверить подпись APK")
+    out = subprocess.run([str(tools[-1]), "verify", "--print-certs", str(APK)],
+                         capture_output=True, text=True, shell=str(tools[-1]).endswith(".bat"))
+    if out.returncode != 0:
+        sys.exit(f"APK не прошёл проверку подписи:\n{out.stderr}")
+    match = re.search(r"certificate DN: (.+)", out.stdout)
+    return match.group(1).strip() if match else ""
 
-cli = paramiko.SSHClient()
-cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-cli.connect(host, username=user, password=pw, timeout=30)
 
-def run(cmd):
-    _i, o, e = cli.exec_command(cmd)
-    return (o.read() + e.read()).decode(errors="replace").strip()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--notes", default="", help="текст «Что нового» в окне обновления")
+    parser.add_argument("--min-version-code", type=int, default=0,
+                        help="сборки ниже этой обязаны обновиться")
+    args = parser.parse_args()
 
-app_dir = f"{base}/app"
-print("free space:", run("df -h ~ | tail -1"))
-run(f"mkdir -p {app_dir}")
+    for path in (APK, PAGE):
+        if not path.exists():
+            sys.exit(f"Не найден: {path}")
+    subject = signer_subject()
+    print("Подпись APK:", subject)
+    if "Android Debug" in subject:
+        sys.exit("APK подписан debug-ключом. Положите android/app/release.jks и android/keystore.properties "
+                 "и пересоберите — иначе обновление не встанет поверх установленной версии.")
 
-sftp = cli.open_sftp()
-def put(local, remote):
-    done = {"n": 0}
-    def cb(t, total):
-        pct = int(t * 100 / total) if total else 0
-        if pct >= done["n"] + 10:
-            done["n"] = pct
-            print(f"  {remote.split('/')[-1]}: {pct}%", flush=True)
-    sftp.put(str(local), remote, callback=cb)
+    code, name = build_version()
+    manifest = {"versionCode": code, "versionName": name, "url": APK_URL,
+                "notes": args.notes, "minVersionCode": args.min_version_code}
+    apk_size = APK.stat().st_size
+    print(f"Версия {name} (code {code}), APK {apk_size} байт, sha256={hashlib.sha256(APK.read_bytes()).hexdigest()[:16]}…")
 
-print("Заливаю APK…")
-put(APK, f"{app_dir}/splithub.apk")
-print("Заливаю страницу установки…")
-put(PAGE, f"{app_dir}/index.html")
-sftp.close()
+    cli, base = connect()
 
-remote_size = run(f"stat -c %s {app_dir}/splithub.apk 2>/dev/null || wc -c < {app_dir}/splithub.apk")
-print(f"\nРазмер на сервере: {remote_size} (локально {apk_size})")
-ok = remote_size.strip() == str(apk_size)
-print("Размер совпал ✅" if ok else "⚠️ РАЗМЕР НЕ СОВПАЛ — заливка неполная")
+    def run(cmd):
+        _i, out, err = cli.exec_command(cmd)
+        return (out.read() + err.read()).decode(errors="replace").strip()
 
-print("\n=== осмотр корня сайта (чтобы ничего не затереть) ===")
-for f in ("llms.txt", "robots.txt", "sitemap.xml"):
-    print(f"-- {f} --")
-    print(run(f"[ -f {base}/{f} ] && head -40 {base}/{f} || echo '(нет файла)'"))
-print("-- privacy страницы --")
-print(run(f"ls -1 {base} | grep -i -E 'privac|polic|conf' || echo '(нет privacy-файлов в корне)'"))
-cli.close()
+    app_dir = f"{base}/app"
+    run(f"mkdir -p {app_dir}")
+    sftp = cli.open_sftp()
+    print("Заливаю APK…")
+    sftp.put(str(APK), f"{app_dir}/splithub.apk.new")
+    remote_size = run(f"stat -c %s {app_dir}/splithub.apk.new")
+    if remote_size != str(apk_size):
+        run(f"rm -f {app_dir}/splithub.apk.new")
+        sys.exit(f"Размер на сервере {remote_size} ≠ {apk_size} — заливка неполная, ничего не заменено")
+    run(f"mv -f {app_dir}/splithub.apk.new {app_dir}/splithub.apk")
+    sftp.put(str(PAGE), f"{app_dir}/index.html")
+    # version.json last: apps are told about the update only once the APK is in place.
+    with sftp.open(f"{app_dir}/version.json", "w") as fh:
+        fh.write(json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
+    sftp.close()
+    cli.close()
 
-print("\nГотово. Ссылки:")
-print("  Страница установки: https://splithub.ru/app/")
-print("  Прямой APK:         https://splithub.ru/app/splithub.apk")
-sys.exit(0 if ok else 1)
+    print("\nГотово:")
+    print("  Страница установки: https://splithub.ru/app/")
+    print(f"  Прямой APK:         {APK_URL}")
+    print("  Автообновление:     https://splithub.ru/app/version.json →", json.dumps(manifest, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
