@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/lib/catalog.php';
+require_once __DIR__ . '/lib/catalog_overrides.php';
+require_once __DIR__ . '/lib/guest_order.php';
 require_once __DIR__ . '/lib/mobile_auth.php';
 require_once __DIR__ . '/lib/order_service.php';
 require_once __DIR__ . '/lib/manager_notify.php';
@@ -36,9 +38,10 @@ try {
     $action = $_GET['action'] ?? '';
 
     if ($action === 'catalog') {
-        $items = loadCatalog();
+        header('Cache-Control: no-store, max-age=0');
+        $items = mobileCatalog();
         ok([
-            'version' => hash_file('sha256', catalogPath()),
+            'version' => mobileCatalogVersion(),
             'updated_at' => gmdate(DATE_ATOM, filemtime(catalogPath())),
             'products' => $items,
         ]);
@@ -112,7 +115,7 @@ try {
         requirePost();
         $uid = requireMobileUser();
         $data = body();
-        $validation = validateCatalogItems($data['items'] ?? []);
+        $validation = mobileValidateCatalogItems($data['items'] ?? []);
         if (!$validation['ok']) {
             $status = in_array($validation['code'], ['CATALOG_CHANGED', 'PRODUCT_UNAVAILABLE'], true) ? 409 : 422;
             fail($validation['code'], $status, $validation);
@@ -136,6 +139,37 @@ try {
             $created['total'],
             $comment,
             $clientTg
+        );
+        ok($created);
+    }
+
+    // Checkout without an account, like a guest order on the website.
+    if ($action === 'create_guest_order') {
+        requirePost();
+        $input = mobileGuestOrderInput(body());
+        if (!$input['ok']) {
+            fail($input['code'], 422);
+        }
+        $validation = mobileValidateCatalogItems($input['items']);
+        if (!$validation['ok']) {
+            $status = in_array($validation['code'], ['CATALOG_CHANGED', 'PRODUCT_UNAVAILABLE'], true) ? 409 : 422;
+            fail($validation['code'], $status, $validation);
+        }
+        $created = createMobileGuestOrder(
+            $input['name'],
+            $input['phone'],
+            $validation['items'],
+            $input['comment'],
+            $input['client_tg']
+        );
+        notifyManagerAboutGuestOrder(
+            $created['guest_order_id'],
+            $input['name'],
+            $input['phone'],
+            $validation['items'],
+            $created['total'],
+            $input['comment'],
+            $input['client_tg']
         );
         ok($created);
     }
