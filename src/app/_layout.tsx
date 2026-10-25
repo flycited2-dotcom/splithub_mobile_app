@@ -11,6 +11,7 @@ import { FavoritesProvider } from '../features/favorites/favorites-context';
 import { notificationTarget } from '../features/notifications/notification-router';
 import { NotificationsProvider } from '../features/notifications/notifications-context';
 import { SessionProvider } from '../features/session/session-context';
+import { AppUpdatePrompt } from '../features/updates/UpdatePrompt';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,6 +47,7 @@ export default function RootLayout() {
               <NotificationsProvider>
                 <StatusBar style="dark" />
                 <NotificationNavigation />
+                <AppUpdatePrompt />
                 <Stack>
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 </Stack>

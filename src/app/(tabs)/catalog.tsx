@@ -3,25 +3,39 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '../../features/cart/cart-context';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
-import { catalogRows, type CatalogRow } from '../../features/catalog/catalog-rows';
+import { catalogRows, filteredRows, type CatalogRow } from '../../features/catalog/catalog-rows';
 import { filterProducts } from '../../features/catalog/filter-products';
 import { groupProducts } from '../../features/catalog/group-products';
 import { ProductCard } from '../../features/catalog/ProductCard';
-import { quickFilters } from '../../features/catalog/quick-filters';
+import { familyFilters, quickFilterById } from '../../features/catalog/quick-filters';
+import { positionsText } from '../../features/catalog/stock-tiers';
 import type { Product } from '../../features/catalog/types';
 import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, spacing } from '../../lib/theme';
+
+// Stock tier pills, same tints as the website's stock badges (.sb-* in index.html).
+const tierColors: Record<string, { background: string; border: string; text: string }> = {
+  in_stock: { background: 'rgba(209,250,229,0.65)', border: 'rgba(16,185,129,0.55)', text: '#047857' },
+  days_1_2: { background: 'rgba(255,228,236,0.7)', border: 'rgba(244,114,182,0.55)', text: '#BE185D' },
+  days_3_5: { background: 'rgba(255,196,215,0.65)', border: 'rgba(236,72,153,0.55)', text: '#9D174D' },
+  days_7: { background: 'rgba(255,196,215,0.65)', border: 'rgba(236,72,153,0.55)', text: '#9D174D' },
+  order_7: { background: 'rgba(254,243,199,0.75)', border: 'rgba(245,158,11,0.6)', text: '#B45309' },
+  wait: { background: 'rgba(224,231,255,0.7)', border: 'rgba(99,102,241,0.5)', text: '#4338CA' },
+  other: { background: 'rgba(254,243,199,0.75)', border: 'rgba(245,158,11,0.6)', text: '#B45309' },
+  out: { background: 'rgba(241,245,249,0.7)', border: 'rgba(156,163,175,0.5)', text: '#6B7280' },
+};
 
 export default function CatalogScreen() {
   const params = useLocalSearchParams<{ filter?: string; mode?: string }>();
@@ -35,17 +49,21 @@ export default function CatalogScreen() {
     () => filterProducts(snapshot?.products ?? [], search, filter),
     [filter, search, snapshot],
   );
-  const sections = useMemo(() => groupProducts(products), [products]);
-  const rows = useMemo(() => catalogRows(sections), [sections]);
-  const filterLabel = quickFilters.find((item) => item.id === filter)?.label;
-  const flatListRef = useRef<FlatList<Product>>(null);
-  const groupedListRef = useRef<FlatList<CatalogRow>>(null);
+  // Like the website: the full catalog is section → stock → brand → series,
+  // a filter is a dense grid split by stock.
+  const rows = useMemo(
+    () => (flatMode ? filteredRows(products) : catalogRows(groupProducts(products))),
+    [flatMode, products],
+  );
+  const filterLabel = quickFilterById(filter)?.label;
+  const inStockCount = useMemo(() => products.filter((product) => product.stock === 'in_stock').length, [products]);
+  const chips = useMemo(() => familyFilters(snapshot?.products ?? [], filter), [filter, snapshot]);
+  const listRef = useRef<FlatList<CatalogRow>>(null);
 
   // Switching the quick filter (or editing the search) must show results from
   // the top; FlatList otherwise keeps the scroll offset of the previous list.
   useEffect(() => {
-    flatListRef.current?.scrollToOffset({ animated: false, offset: 0 });
-    groupedListRef.current?.scrollToOffset({ animated: false, offset: 0 });
+    listRef.current?.scrollToOffset({ animated: false, offset: 0 });
   }, [filter, search, flatMode]);
 
   const add = useCallback((product: Product) => {
@@ -72,6 +90,19 @@ export default function CatalogScreen() {
             <Text style={styles.sectionLabel}>{row.label}</Text>
           </View>
         );
+      case 'tier': {
+        const tint = tierColors[row.key] ?? tierColors.other;
+        return (
+          <View style={styles.tierRow}>
+            <View style={[styles.tierPill, { backgroundColor: tint.background, borderColor: tint.border }]}>
+              <Text style={[styles.tierText, { color: tint.text }]}>
+                {row.label} · {positionsText(row.count)}
+              </Text>
+            </View>
+            <View style={styles.tierLine} />
+          </View>
+        );
+      }
       case 'brand':
         return (
           <View style={styles.brandHeader}>
@@ -96,7 +127,6 @@ export default function CatalogScreen() {
     }
   }, [renderProduct]);
 
-  const renderFlatItem = useCallback(({ item }: { item: Product }) => renderProduct(item), [renderProduct]);
   const renderGroupedItem = useCallback(({ item }: { item: CatalogRow }) => renderCatalogRow(item), [renderCatalogRow]);
 
   return (
@@ -104,8 +134,24 @@ export default function CatalogScreen() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.title}>{filterLabel ?? 'Весь каталог'}</Text>
         <Text style={styles.subtitle}>
-          {flatMode ? 'Подходящие товары' : 'Каталог по брендам и сериям'}
+          {snapshot
+            ? `${positionsText(products.length)}, в наличии ${inStockCount}`
+            : flatMode ? 'Подходящие товары' : 'Каталог по брендам и сериям'}
         </Text>
+        {chips.length ? (
+          <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+            {chips.map((chip) => (
+              <Pressable
+                key={chip.id}
+                onPress={() => router.setParams({ filter: chip.id, mode: 'flat' })}
+                style={[styles.chip, chip.id === filter && styles.chipActive]}>
+                <Text style={[styles.chipText, chip.id === filter && styles.chipTextActive]}>
+                  {chip.chip} <Text style={styles.chipCount}>{chip.count}</Text>
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : null}
         {offline && snapshot ? (
           <Text style={styles.offline}>
             Офлайн-каталог. Последнее обновление: {new Date(snapshot.updated_at).toLocaleString('ru-RU')}
@@ -129,35 +175,17 @@ export default function CatalogScreen() {
         <Text style={styles.empty}>В этой категории пока нет товаров</Text>
       ) : null}
 
-      {flatMode ? (
-        <FlatList
-          columnWrapperStyle={styles.productRow}
-          contentContainerStyle={[styles.flatList, stackScreenPadding(insets)]}
-          data={products}
-          initialNumToRender={10}
-          key="catalog-flat"
-          keyExtractor={(product) => product.id}
-          maxToRenderPerBatch={10}
-          numColumns={2}
-          ref={flatListRef}
-          removeClippedSubviews
-          renderItem={renderFlatItem}
-          windowSize={7}
-        />
-      ) : (
-        <FlatList
-          contentContainerStyle={[styles.groupedList, stackScreenPadding(insets)]}
-          data={rows}
-          initialNumToRender={10}
-          key="catalog-grouped"
-          keyExtractor={(row) => row.id}
-          maxToRenderPerBatch={10}
-          ref={groupedListRef}
-          removeClippedSubviews
-          renderItem={renderGroupedItem}
-          windowSize={7}
-        />
-      )}
+      <FlatList
+        contentContainerStyle={[flatMode ? styles.flatList : styles.groupedList, stackScreenPadding(insets)]}
+        data={rows}
+        initialNumToRender={10}
+        keyExtractor={(row) => row.id}
+        maxToRenderPerBatch={10}
+        ref={listRef}
+        removeClippedSubviews
+        renderItem={renderGroupedItem}
+        windowSize={7}
+      />
     </View>
   );
 }
@@ -228,6 +256,53 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: -spacing.sm,
+  },
+  tierRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  tierPill: {
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  tierText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  tierLine: {
+    backgroundColor: colors.border,
+    flex: 1,
+    height: 1,
+  },
+  chips: {
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
+  },
+  chip: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  chipText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+  },
+  chipCount: {
+    opacity: 0.7,
   },
   sectionLabel: {
     color: colors.muted,

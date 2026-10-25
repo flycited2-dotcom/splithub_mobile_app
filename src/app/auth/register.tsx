@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { apiErrorCode, sessionErrorMessage } from '../../features/session/session-errors';
 import { useSession } from '../../features/session/session-context';
@@ -8,6 +8,7 @@ import { colors, spacing } from '../../lib/theme';
 
 export default function RegisterScreen() {
   const { register } = useSession();
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+7');
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function RegisterScreen() {
     setError('');
     try {
       await register(name, phone, password, telegram, email);
-      router.replace('/profile');
+      router.replace(next === '/cart' ? '/cart' : '/profile');
     } catch (failure) {
       setError(sessionErrorMessage(apiErrorCode(failure)));
     } finally {

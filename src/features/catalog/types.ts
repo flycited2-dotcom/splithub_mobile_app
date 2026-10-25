@@ -20,6 +20,11 @@ export type Product = {
   descShort: string;
   benefits: string[];
   photo: string;
+  photos?: string[];
+  // Set from the website admin panel.
+  description?: string;
+  badge?: string;
+  badge_label?: string;
 };
 
 export type CatalogSnapshot = {

@@ -59,6 +59,14 @@ export const catalogStorage = {
     })),
 };
 
+// Name/phone of the last guest order, prefilled next time like the website's localStorage.
+const GUEST_CONTACT_KEY = 'splithub.guest-contact';
+
+export const guestContactStorage = {
+  read: async () => safeParse<{ name: string; phone: string }>(await AsyncStorage.getItem(GUEST_CONTACT_KEY)),
+  write: (contact: { name: string; phone: string }) => AsyncStorage.setItem(GUEST_CONTACT_KEY, JSON.stringify(contact)),
+};
+
 export const cartStorage = {
   read: async <T>() => {
     const raw = await AsyncStorage.getItem(CART_KEY);

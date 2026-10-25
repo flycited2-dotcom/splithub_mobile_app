@@ -1,7 +1,7 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 import CartScreen from '../src/app/(tabs)/cart';
 import OrdersScreen from '../src/app/(tabs)/orders';
@@ -29,6 +29,11 @@ jest.mock('expo-router', () => ({
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
+}));
+
+jest.mock('../src/lib/storage', () => ({
+  ...jest.requireActual('../src/lib/storage'),
+  guestContactStorage: { read: jest.fn().mockResolvedValue(null), write: jest.fn() },
 }));
 
 jest.mock('../src/features/cart/cart-context', () => ({
@@ -87,6 +92,7 @@ test('routes to orders with the created order id and total after checkout', asyn
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: mockCheckout,
+    checkoutGuest: jest.fn(),
     checkoutError: null,
     checkingOut: false,
     items: [{ id: 'pipe-38', name: 'РњРµРґРЅР°СЏ С‚СЂСѓР±Р° 3/8 В· Р±СѓС…С‚Р° 50 Рј', price: 14550, qty: 1 }],
@@ -109,10 +115,47 @@ test('routes to orders with the created order id and total after checkout', asyn
   });
 });
 
+test('a logged-out user sends the order with name and phone, like on the website', async () => {
+  const mockCheckoutGuest = jest.fn().mockResolvedValue({ guest_order_id: 12, total: 14550 });
+  const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  mockedUseSession.mockReturnValue({ ...mockedUseSession(), user: null });
+  mockedUseCart.mockReturnValue({
+    addProduct: jest.fn(),
+    checkout: mockCheckout,
+    checkoutGuest: mockCheckoutGuest,
+    checkoutError: null,
+    checkingOut: false,
+    items: [{ id: 'pipe-38', name: 'Медная труба 3/8 · бухта 50 м', price: 14550, qty: 1 }],
+    itemsCount: 1,
+    quantityByProductId: {},
+    replaceItems: jest.fn(),
+    setQty: jest.fn(),
+    total: 14550,
+  });
+
+  const { getByPlaceholderText, getByText, findByText } = render(<CartScreen />);
+
+  fireEvent.press(getByText('Отправить заявку'));
+  expect(await findByText('Укажите имя и телефон')).toBeTruthy();
+  expect(mockCheckoutGuest).not.toHaveBeenCalled();
+
+  fireEvent.changeText(getByPlaceholderText('Ваше имя'), 'Иван');
+  fireEvent.changeText(getByPlaceholderText('Телефон'), '+79781234567');
+  fireEvent.press(getByText('Отправить заявку'));
+
+  await waitFor(() => {
+    expect(alertSpy).toHaveBeenCalledWith('Заявка отправлена', 'Менеджер перезвонит по номеру +79781234567.');
+  });
+  expect(mockCheckoutGuest).toHaveBeenCalledWith({ name: 'Иван', phone: '+79781234567' }, '');
+  expect(mockCheckout).not.toHaveBeenCalled();
+  alertSpy.mockRestore();
+});
+
 test('continues shopping in flat catalog mode', () => {
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: mockCheckout,
+    checkoutGuest: jest.fn(),
     checkoutError: null,
     checkingOut: false,
     items: [{ id: 'pipe-38', name: 'Медная труба 3/8 · бухта 50 м', price: 14550, qty: 1 }],
@@ -285,6 +328,7 @@ test('pulls down in the cart to refresh the catalog used by prices and upsells',
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: mockCheckout,
+    checkoutGuest: jest.fn(),
     checkoutError: null,
     checkingOut: false,
     items: [],

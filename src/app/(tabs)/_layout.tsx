@@ -13,7 +13,8 @@ export default function TabLayout() {
     <Tabs
       backBehavior="initialRoute"
       initialRouteName="index"
-      screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent }}>
+      // tabBarHideOnKeyboard: otherwise the tab bar is drawn over the keyboard (cart form, search).
+      screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent, tabBarHideOnKeyboard: true }}>
       <Tabs.Screen
         name="catalog"
         options={{

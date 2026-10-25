@@ -6,6 +6,7 @@ import { Link } from 'expo-router';
 
 import { useFavorites } from '../favorites/favorites-context';
 import { colors, formatPrice, spacing } from '../../lib/theme';
+import { isOrderable, promoBadge } from './promo-badge';
 import { stockBadge } from './stock-badge';
 import type { Product } from './types';
 
@@ -21,9 +22,16 @@ export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onA
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite(product.id);
   const badge = stockBadge(product);
+  const promo = promoBadge(product);
+  const orderable = isOrderable(product);
 
   return (
     <View style={styles.card}>
+      {promo ? (
+        <View pointerEvents="none" style={[styles.promoBadge, { backgroundColor: promo.backgroundColor }]}>
+          <Text numberOfLines={1} style={styles.promoText}>{promo.label}</Text>
+        </View>
+      ) : null}
       <Pressable
         accessibilityLabel={favorite ? 'Убрать из избранного' : 'Добавить в избранное'}
         hitSlop={8}
@@ -48,15 +56,26 @@ export const ProductCard = memo(function ProductCard({ cartQty = 0, product, onA
           <Text numberOfLines={1} style={styles.brand}>{product.brand}</Text>
           <Text numberOfLines={2} style={styles.model}>{product.model}</Text>
           {product.descShort ? <Text numberOfLines={2} style={styles.description}>{product.descShort}</Text> : null}
+          {product.description ? <Text numberOfLines={3} style={styles.adminNote}>{product.description}</Text> : null}
           <View style={[styles.stockBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
             <Text numberOfLines={1} style={[styles.stockBadgeText, { color: badge.color }]}>{badge.label}</Text>
           </View>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
         </Pressable>
       </Link>
-      <Pressable onPress={() => onAdd(product)} style={styles.addButton}>
-        <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'Заказать'}</Text>
-      </Pressable>
+      {orderable ? (
+        <Pressable onPress={() => onAdd(product)} style={styles.addButton}>
+          <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'Заказать'}</Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityLabel="Нет в наличии, заказать нельзя"
+          accessibilityState={{ disabled: true }}
+          disabled
+          style={[styles.addButton, styles.addButtonDisabled]}>
+          <Text style={styles.addText}>Нет в наличии</Text>
+        </Pressable>
+      )}
     </View>
   );
 });
@@ -138,8 +157,32 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: 10,
   },
+  addButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
   addText: {
     color: '#FFFFFF',
     fontWeight: '800',
+  },
+  adminNote: {
+    color: '#4B5563',
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  promoBadge: {
+    borderRadius: 20,
+    left: spacing.sm,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    position: 'absolute',
+    top: spacing.sm,
+    zIndex: 2,
+  },
+  promoText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
 });

@@ -127,11 +127,11 @@ export default function HomeScreen() {
                 (filter.id === 'on79' || filter.id === 'on12') && styles.onSmallFilter,
                 (filter.id === 'on18' || filter.id === 'on2436') && styles.onLargeFilter,
                 filter.id === 'truba' && styles.copperFilter,
-                filter.id === 'rashod' && styles.silverFilter,
+                (filter.id === 'rashod' || filter.id.startsWith('r_')) && styles.silverFilter,
                 filter.id === 'multi' && styles.blackFilter,
               ]}>
               <Text style={[styles.filterText, filter.id === 'multi' && styles.blackFilterText]}>
-                {filter.label}
+                {filter.button ?? filter.label}
               </Text>
             </Pressable>
           ))}
@@ -151,7 +151,9 @@ export default function HomeScreen() {
                   openCatalog(filter.id);
                 }}
                 style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>{filter.label}</Text>
+                <Text style={styles.modalButtonText}>
+                  {filter.id === 'poluprom' ? 'Весь полупром — колонные, консольные и другие' : filter.button ?? filter.label}
+                </Text>
               </Pressable>
             ))}
             <Pressable onPress={() => setPolupromOpen(false)} style={styles.modalClose}>

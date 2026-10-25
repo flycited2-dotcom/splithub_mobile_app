@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Image } from 'react-native';
 
@@ -52,6 +52,31 @@ test('shows cart quantity when product is already in cart', () => {
 
   expect(queryByText('В заявке · 3')).toBeTruthy();
   expect(queryByText('Заказать')).toBeNull();
+});
+
+test('disables ordering for out-of-stock products', () => {
+  const onAdd = jest.fn();
+  const { getByLabelText, queryByText } = render(
+    <ProductCard onAdd={onAdd} product={{ ...product, stock: 'out', stockLabel: 'Нет в наличии' }} />,
+  );
+
+  expect(queryByText('Заказать')).toBeNull();
+  const button = getByLabelText('Нет в наличии, заказать нельзя');
+  expect(button.props.accessibilityState?.disabled).toBe(true);
+  fireEvent.press(button);
+  expect(onAdd).not.toHaveBeenCalled();
+});
+
+test('shows the admin promo badge and note', () => {
+  const { queryByText } = render(
+    <ProductCard
+      onAdd={jest.fn()}
+      product={{ ...product, badge: 'sale', description: 'Монтаж в подарок' }}
+    />,
+  );
+
+  expect(queryByText('Акция')).toBeTruthy();
+  expect(queryByText('Монтаж в подарок')).toBeTruthy();
 });
 
 test('uses cached image props for smoother catalog scrolling', () => {

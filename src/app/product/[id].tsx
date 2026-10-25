@@ -8,12 +8,16 @@ import { StackBottomTabs } from '../../components/stack-bottom-tabs';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productShareData, shareUrls } from '../../features/catalog/share-product';
+import { isOrderable, promoBadge } from '../../features/catalog/promo-badge';
 import { stockBadge } from '../../features/catalog/stock-badge';
 import { useCart } from '../../features/cart/cart-context';
 import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
+
+// Consumables carry "-" in spec fields instead of leaving them empty.
+const hasValue = (value?: string) => Boolean(value && !/^[\s\-–—]*$/.test(value));
 
 export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,12 +38,14 @@ export default function ProductDetailsScreen() {
   const selectedProduct = product;
   const cartQty = quantityByProductId[selectedProduct.id] ?? 0;
   const badge = stockBadge(product);
+  const promo = promoBadge(product);
+  const orderable = isOrderable(product);
   const urls = shareUrls(selectedProduct);
   const specs = [
-    product.btu ? `Мощность: ${product.btu} BTU` : '',
+    hasValue(product.btu) ? `Мощность: ${product.btu} BTU` : '',
     product.area ? `Площадь: до ${product.area} м²` : '',
-    product.compressor ? `Компрессор: ${product.compressor}` : '',
-    product.freon ? `Фреон: ${product.freon}` : '',
+    hasValue(product.compressor) ? `Компрессор: ${product.compressor}` : '',
+    hasValue(product.freon) ? `Фреон: ${product.freon}` : '',
   ].filter(Boolean);
 
   function addToCart() {
@@ -59,15 +65,29 @@ export default function ProductDetailsScreen() {
         <Text style={styles.brand}>{product.brand}</Text>
         <Text style={styles.title}>{product.model}</Text>
         <Text style={styles.description}>{product.descShort}</Text>
-        <View style={[styles.stockBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
-          <Text style={[styles.stockBadgeText, { color: badge.color }]}>{badge.label}</Text>
+        {product.description ? <Text style={styles.adminNote}>{product.description}</Text> : null}
+        <View style={styles.badgeRow}>
+          <View style={[styles.stockBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
+            <Text style={[styles.stockBadgeText, { color: badge.color }]}>{badge.label}</Text>
+          </View>
+          {promo ? (
+            <View style={[styles.promoBadge, { backgroundColor: promo.backgroundColor }]}>
+              <Text style={styles.promoText}>{promo.label}</Text>
+            </View>
+          ) : null}
         </View>
         <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
         <View style={styles.priceRow}>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
-          <Pressable onPress={addToCart} style={styles.addButton}>
-            <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'В заявку'}</Text>
-          </Pressable>
+          {orderable ? (
+            <Pressable onPress={addToCart} style={styles.addButton}>
+              <Text style={styles.addText}>{cartQty > 0 ? `В заявке · ${cartQty}` : 'В заявку'}</Text>
+            </Pressable>
+          ) : (
+            <View style={[styles.addButton, styles.addButtonDisabled]}>
+              <Text style={styles.addText}>Нет в наличии</Text>
+            </View>
+          )}
         </View>
 
         {specs.length ? (
@@ -145,6 +165,30 @@ const styles = StyleSheet.create({
   },
   description: {
     color: colors.muted,
+  },
+  adminNote: {
+    color: '#4B5563',
+    fontStyle: 'italic',
+  },
+  badgeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  promoBadge: {
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  promoText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  addButtonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   stockBadge: {
     alignSelf: 'flex-start',

@@ -44,6 +44,7 @@ beforeEach(() => {
   mockedUseCart.mockReturnValue({
     addProduct: jest.fn(),
     checkout: jest.fn(),
+    checkoutGuest: jest.fn(),
     checkoutError: null,
     checkingOut: false,
     items: [],

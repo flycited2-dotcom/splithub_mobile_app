@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,14 +7,28 @@ import { useCart } from '../../features/cart/cart-context';
 import { upsellProducts } from '../../features/cart/upsell-products';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productTitle } from '../../features/catalog/product-title';
+import { useSession } from '../../features/session/session-context';
 import { tabScreenPadding } from '../../lib/safe-area';
+import { guestContactStorage } from '../../lib/storage';
 import { colors, formatPrice, spacing } from '../../lib/theme';
 
 export default function CartScreen() {
   const insets = useSafeAreaInsets();
   const { loading: catalogLoading, refresh: refreshCatalog, snapshot } = useCatalog();
-  const { items, itemsCount, total, addProduct, setQty, checkout, checkoutError, checkingOut } = useCart();
+  const { items, itemsCount, total, addProduct, setQty, checkout, checkoutGuest, checkoutError, checkingOut } = useCart();
+  const { user } = useSession();
   const [comment, setComment] = useState('');
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestError, setGuestError] = useState('');
+
+  useEffect(() => {
+    void guestContactStorage.read().then((saved) => {
+      if (!saved) return;
+      setGuestName((current) => current || saved.name);
+      setGuestPhone((current) => current || saved.phone);
+    });
+  }, []);
   const installerKit = useMemo(
     () => upsellProducts(items, snapshot?.products ?? []),
     [items, snapshot],
@@ -24,7 +38,25 @@ export default function CartScreen() {
     [snapshot],
   );
 
+  async function submitGuest() {
+    const contact = { name: guestName.trim(), phone: guestPhone.trim() };
+    if (!contact.name || contact.phone.replace(/\D/g, '').length < 10) {
+      setGuestError('Укажите имя и телефон');
+      return;
+    }
+    setGuestError('');
+    const result = await checkoutGuest(contact, comment);
+    if (!result) return;
+    void guestContactStorage.write(contact);
+    setComment('');
+    Alert.alert('Заявка отправлена', `Менеджер перезвонит по номеру ${contact.phone}.`);
+  }
+
   async function submit() {
+    if (!user) {
+      await submitGuest();
+      return;
+    }
     const result = await checkout(comment);
     if (!result) return;
     setComment('');
@@ -111,10 +143,35 @@ export default function CartScreen() {
             style={styles.comment}
             value={comment}
           />
+          {user ? null : (
+            <>
+              <TextInput
+                autoComplete="name"
+                onChangeText={setGuestName}
+                placeholder="Ваше имя"
+                style={styles.guestInput}
+                value={guestName}
+              />
+              <TextInput
+                autoComplete="tel"
+                keyboardType="phone-pad"
+                onChangeText={setGuestPhone}
+                placeholder="Телефон"
+                style={styles.guestInput}
+                value={guestPhone}
+              />
+            </>
+          )}
           <Text style={styles.note}>После отправки заявка сразу поступит менеджеру.</Text>
+          {user ? null : (
+            <Link href={{ pathname: '/auth/login', params: { next: '/cart' } }} style={styles.loginLink}>
+              Войти — заявки будут сохраняться в истории
+            </Link>
+          )}
+          {guestError ? <Text style={styles.error}>{guestError}</Text> : null}
           {checkoutError ? <Text style={styles.error}>{checkoutError.message}</Text> : null}
           {checkoutError?.code === 'AUTH_REQUIRED' ? (
-            <Link href="/auth/login" style={styles.loginLink}>Войти в аккаунт</Link>
+            <Link href={{ pathname: '/auth/login', params: { next: '/cart' } }} style={styles.loginLink}>Войти в аккаунт</Link>
           ) : null}
           <View style={styles.bottomActions}>
             <Pressable
@@ -290,6 +347,13 @@ const styles = StyleSheet.create({
     minHeight: 72,
     padding: spacing.md,
     textAlignVertical: 'top',
+  },
+  guestInput: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: spacing.md,
   },
   note: {
     color: colors.muted,

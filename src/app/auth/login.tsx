@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Link, router, Stack } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { apiErrorCode, sessionErrorMessage } from '../../features/session/session-errors';
 import { useSession } from '../../features/session/session-context';
@@ -8,6 +8,8 @@ import { colors, spacing } from '../../lib/theme';
 
 export default function LoginScreen() {
   const { login } = useSession();
+  // Cart sends here with next=/cart so the user lands back on the unsent order.
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const [phone, setPhone] = useState('+7');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +20,7 @@ export default function LoginScreen() {
     setError('');
     try {
       await login(phone, password);
-      router.replace('/profile');
+      router.replace(next === '/cart' ? '/cart' : '/profile');
     } catch (failure) {
       setError(sessionErrorMessage(apiErrorCode(failure)));
     } finally {
@@ -50,7 +52,7 @@ export default function LoginScreen() {
         <Pressable disabled={submitting} onPress={() => void submit()} style={styles.button}>
           <Text style={styles.buttonText}>{submitting ? 'Вход...' : 'Войти'}</Text>
         </Pressable>
-        <Link href="/auth/register" style={styles.link}>
+        <Link href={next === '/cart' ? { pathname: '/auth/register', params: { next } } : '/auth/register'} style={styles.link}>
           Создать аккаунт
         </Link>
         <Link href="/auth/reset" style={styles.link}>
