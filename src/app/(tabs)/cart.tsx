@@ -136,6 +136,10 @@ export default function CartScreen() {
             </View>
             <Text style={styles.total}>{formatPrice(total)}</Text>
           </View>
+          <Pressable onPress={() => router.push('/estimate' as never)} style={styles.estimateButton}>
+            <Text style={styles.estimateTitle}>📄  Смета для клиента</Text>
+            <Text style={styles.estimateHint}>PDF с вашей наценкой и работами — отправьте в WhatsApp или Telegram</Text>
+          </Pressable>
           <TextInput
             multiline
             onChangeText={setComment}
@@ -347,6 +351,23 @@ const styles = StyleSheet.create({
     minHeight: 72,
     padding: spacing.md,
     textAlignVertical: 'top',
+  },
+  estimateButton: {
+    backgroundColor: 'rgba(245,158,11,0.10)',
+    borderColor: 'rgba(245,158,11,0.45)',
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 2,
+    padding: spacing.md,
+  },
+  estimateTitle: {
+    color: colors.accentDark,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  estimateHint: {
+    color: colors.muted,
+    fontSize: 12,
   },
   guestInput: {
     backgroundColor: colors.card,

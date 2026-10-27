@@ -67,6 +67,14 @@ export const guestContactStorage = {
   write: (contact: { name: string; phone: string }) => AsyncStorage.setItem(GUEST_CONTACT_KEY, JSON.stringify(contact)),
 };
 
+// Installer's estimate settings (markup, own work prices, contacts) reused for the next estimate.
+const ESTIMATE_SETTINGS_KEY = 'splithub.estimate-settings';
+
+export const estimateSettingsStorage = {
+  read: async <T>() => safeParse<T>(await AsyncStorage.getItem(ESTIMATE_SETTINGS_KEY)),
+  write: (settings: unknown) => AsyncStorage.setItem(ESTIMATE_SETTINGS_KEY, JSON.stringify(settings)),
+};
+
 export const cartStorage = {
   read: async <T>() => {
     const raw = await AsyncStorage.getItem(CART_KEY);

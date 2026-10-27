@@ -136,7 +136,7 @@ type DownloadsNativeModule = {
 
 // Save straight into the system Downloads folder (MediaStore) with no folder
 // picker, like a regular Android download. Backed by the in-app native module.
-const mediaStoreDownloadsSaver: DownloadsSaver = async (localUri, fileName, mimeType) => {
+export const mediaStoreDownloadsSaver: DownloadsSaver = async (localUri, fileName, mimeType) => {
   const native = (NativeModules as { SplitHubDownloads?: DownloadsNativeModule }).SplitHubDownloads;
   if (!native?.saveToDownloads) {
     throw new Error('Сохранение в «Загрузки» недоступно на этом устройстве');
@@ -265,7 +265,7 @@ async function renderPdfPriceListBase64(products: Product[], today: string) {
   return pdf.saveAsBase64();
 }
 
-async function readAssetAsBase64(moduleId: number) {
+export async function readAssetAsBase64(moduleId: number) {
   const asset = Asset.fromModule(moduleId);
   await asset.downloadAsync();
   const uri = asset.localUri ?? asset.uri;
