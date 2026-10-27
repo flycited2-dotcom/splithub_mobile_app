@@ -12,6 +12,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { usePagerSwipeLock } from '../../components/pager-swipe-lock';
 import { useCart } from '../../features/cart/cart-context';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
@@ -59,6 +60,7 @@ export default function CatalogScreen() {
   const inStockCount = useMemo(() => products.filter((product) => product.stock === 'in_stock').length, [products]);
   const chips = useMemo(() => familyFilters(snapshot?.products ?? [], filter), [filter, snapshot]);
   const listRef = useRef<FlatList<CatalogRow>>(null);
+  const swipeLock = usePagerSwipeLock();
 
   // Switching the quick filter (or editing the search) must show results from
   // the top; FlatList otherwise keeps the scroll offset of the previous list.
@@ -139,7 +141,7 @@ export default function CatalogScreen() {
             : flatMode ? 'Подходящие товары' : 'Каталог по брендам и сериям'}
         </Text>
         {chips.length ? (
-          <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false} {...swipeLock}>
             {chips.map((chip) => (
               <Pressable
                 key={chip.id}

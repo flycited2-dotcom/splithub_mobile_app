@@ -26,6 +26,28 @@ const periodFilters: [string, string][] = [
   ['1y', 'Год'],
 ];
 
+// "Liquid glass" chips: translucent tint with a tinted rim; the active one is filled
+// with its colour. Colours follow the order status badges (new blue, in work orange,
+// done green, cancelled red); "all" uses the brand amber, periods a neutral slate.
+type Tint = { rgb: string; text: string };
+const statusTints: Record<string, Tint> = {
+  '': { rgb: '245,158,11', text: '#B45309' },
+  new: { rgb: '37,99,235', text: '#1D4ED8' },
+  in_progress: { rgb: '234,88,12', text: '#C2410C' },
+  completed: { rgb: '22,163,74', text: '#15803D' },
+  cancelled: { rgb: '220,38,38', text: '#B91C1C' },
+};
+const periodTint: Tint = { rgb: '71,85,105', text: '#334155' };
+
+const glassChip = (tint: Tint, active: boolean) => [
+  styles.chip,
+  active
+    ? { backgroundColor: `rgba(${tint.rgb},0.92)`, borderColor: `rgba(${tint.rgb},1)`, shadowColor: `rgb(${tint.rgb})` }
+    : { backgroundColor: `rgba(${tint.rgb},0.12)`, borderColor: `rgba(${tint.rgb},0.40)` },
+  active && styles.chipActive,
+];
+const glassChipText = (tint: Tint, active: boolean) => [styles.chipText, { color: active ? '#FFFFFF' : tint.text }];
+
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ created?: string; createdTotal?: string }>();
@@ -121,8 +143,8 @@ export default function OrdersScreen() {
           <Pressable
             key={`s-${value}`}
             onPress={() => setFilter((current) => ({ ...current, status: value }))}
-            style={[styles.chip, (filter.status ?? '') === value && styles.chipActive]}>
-            <Text style={[styles.chipText, (filter.status ?? '') === value && styles.chipTextActive]}>{label}</Text>
+            style={glassChip(statusTints[value] ?? statusTints[''], (filter.status ?? '') === value)}>
+            <Text style={glassChipText(statusTints[value] ?? statusTints[''], (filter.status ?? '') === value)}>{label}</Text>
           </Pressable>
         ))}
       </View>
@@ -131,8 +153,8 @@ export default function OrdersScreen() {
           <Pressable
             key={`p-${value}`}
             onPress={() => setFilter((current) => ({ ...current, period: value }))}
-            style={[styles.chip, (filter.period ?? '') === value && styles.chipActive]}>
-            <Text style={[styles.chipText, (filter.period ?? '') === value && styles.chipTextActive]}>{label}</Text>
+            style={glassChip(periodTint, (filter.period ?? '') === value)}>
+            <Text style={glassChipText(periodTint, (filter.period ?? '') === value)}>{label}</Text>
           </Pressable>
         ))}
       </View>
@@ -178,24 +200,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
     borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
   },
   chipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    elevation: 3,
+    shadowOffset: { height: 3, width: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
   chipText: {
-    color: colors.text,
     fontSize: 13,
-    fontWeight: '700',
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
+    fontWeight: '800',
   },
   screen: {
     backgroundColor: colors.background,

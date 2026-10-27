@@ -9,6 +9,8 @@ let mockParams: Record<string, string> = {};
 
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
+  useNavigation: () => ({ setOptions: jest.fn() }),
+  router: { setParams: jest.fn() },
   Link: ({ children }: { children: ReactNode }) => children,
 }));
 

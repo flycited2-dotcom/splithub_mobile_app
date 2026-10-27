@@ -240,9 +240,13 @@ test('keeps the closed poluprom modal outside the home scroll content', () => {
     user: null,
   });
 
-  const { UNSAFE_getByType } = render(<HomeScreen />);
+  const { UNSAFE_getAllByType, UNSAFE_getByType } = render(<HomeScreen />);
   const scrollView = UNSAFE_getByType(ScrollView);
-  const modal = UNSAFE_getByType(Modal);
+  // Poluprom picker and the price format sheet.
+  const modals = UNSAFE_getAllByType(Modal);
 
-  expect(hasAncestor(modal, scrollView)).toBe(false);
+  expect(modals.length).toBe(2);
+  for (const modal of modals) {
+    expect(hasAncestor(modal, scrollView)).toBe(false);
+  }
 });

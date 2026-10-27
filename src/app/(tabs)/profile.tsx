@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Link, router } from 'expo-router';
+import { PriceFormatSheet } from '../../features/home/PriceFormatSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '../../features/catalog/catalog-context';
@@ -160,12 +161,10 @@ export default function ProfileScreen() {
     }
   }
 
+  const [formatPickerOpen, setFormatPickerOpen] = useState(false);
+
   function showPriceListFormatPicker() {
-    Alert.alert('Скачать прайс', 'Выберите формат файла для сохранения на телефон.', [
-      { text: 'PDF', onPress: () => void handlePriceListDownload('pdf') },
-      { text: 'Excel', onPress: () => void handlePriceListDownload('excel') },
-      { text: 'Отмена', style: 'cancel' },
-    ]);
+    setFormatPickerOpen(true);
   }
 
   async function handlePriceListDownload(format: PriceListFormat) {
@@ -298,6 +297,11 @@ export default function ProfileScreen() {
       <Pressable onPress={() => void logoutAndRemoveDevice()} style={styles.logout}>
         <Text style={styles.logoutText}>Выйти</Text>
       </Pressable>
+      <PriceFormatSheet
+        onClose={() => setFormatPickerOpen(false)}
+        onPick={(format) => void handlePriceListDownload(format)}
+        visible={formatPickerOpen}
+      />
       <Pressable onPress={confirmDeleteAccount} style={styles.deleteAccount}>
         <Text style={styles.deleteAccountText}>Удалить аккаунт</Text>
       </Pressable>
@@ -308,7 +312,9 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.background,
-    flex: 1,
+    // flexGrow, not flex: as a ScrollView content style flex:1 capped the height
+    // at the viewport, so "Выйти" / "Удалить аккаунт" could not be scrolled to.
+    flexGrow: 1,
     gap: spacing.md,
     padding: spacing.lg,
   },

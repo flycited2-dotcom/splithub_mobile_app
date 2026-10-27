@@ -103,13 +103,19 @@ test('asks for PDF or Excel and saves the selected price list without opening a 
     uri: 'content://downloads/splithub-price-2026-06-03.xls',
   });
 
-  const { getByText } = render(<HomeScreen />);
+  const { getByLabelText, getByText, queryByText } = render(<HomeScreen />);
 
   fireEvent.press(getByText('⇩  Загрузить прайс'));
 
-  const [, , actions] = alertSpy.mock.calls[0];
+  // Own sheet with PDF / Excel / Cancel buttons in a column instead of a system alert.
+  expect(getByText('Скачать прайс')).toBeTruthy();
+  expect(getByLabelText('Скачать прайс в PDF')).toBeTruthy();
+  fireEvent.press(getByText('Отмена'));
+  expect(queryByText('Скачать прайс')).toBeNull();
+
+  fireEvent.press(getByText('⇩  Загрузить прайс'));
   await act(async () => {
-    actions?.find((action) => action.text === 'Excel')?.onPress?.();
+    fireEvent.press(getByLabelText('Скачать прайс в Excel'));
   });
 
   await waitFor(() => {

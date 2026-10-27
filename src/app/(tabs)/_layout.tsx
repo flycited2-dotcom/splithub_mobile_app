@@ -1,65 +1,22 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router, Tabs } from 'expo-router';
+import { TopTabs } from 'expo-router/js-top-tabs';
 
-import { useCart } from '../../features/cart/cart-context';
-import { useNotifications } from '../../features/notifications/notifications-context';
-import { colors } from '../../lib/theme';
+import { PagerTabBar } from '../../components/pager-tab-bar';
 
+// Swipeable pages (native pager): swipe left/right moves between neighbouring tabs.
+// Horizontal lists inside a page (filter chips, photos) scroll first.
 export default function TabLayout() {
-  const { itemsCount } = useCart();
-  const { unreadCount } = useNotifications();
-
   return (
-    <Tabs
+    <TopTabs
       backBehavior="initialRoute"
       initialRouteName="index"
-      // tabBarHideOnKeyboard: otherwise the tab bar is drawn over the keyboard (cart form, search).
-      screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.accent, tabBarHideOnKeyboard: true }}>
-      <Tabs.Screen
-        name="catalog"
-        options={{
-          title: 'Каталог',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="grid-view" size={size} />,
-        }}
-        listeners={{
-          // Tapping the Catalog tab must always show the full catalog, not the last
-          // filter the user opened from the Home screen quick filters.
-          tabPress: (e) => {
-            e.preventDefault();
-            router.navigate({ pathname: '/catalog', params: { filter: '', mode: 'flat' } });
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Главная',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="home" size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="cart"
-        options={{
-          tabBarBadge: itemsCount > 0 ? itemsCount : undefined,
-          title: 'Корзина',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="shopping-cart" size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: 'Заказы',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="receipt-long" size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-          title: 'Профиль',
-          tabBarIcon: ({ color, size }) => <MaterialIcons color={color} name="person" size={size} />,
-        }}
-      />
-    </Tabs>
+      screenOptions={{ lazy: true, swipeEnabled: true }}
+      tabBar={(props: React.ComponentProps<typeof PagerTabBar>) => <PagerTabBar {...props} />}
+      tabBarPosition="bottom">
+      <TopTabs.Screen name="catalog" />
+      <TopTabs.Screen name="index" />
+      <TopTabs.Screen name="cart" />
+      <TopTabs.Screen name="orders" />
+      <TopTabs.Screen name="profile" />
+    </TopTabs>
   );
 }

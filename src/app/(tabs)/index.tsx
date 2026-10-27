@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { PriceFormatSheet } from '../../features/home/PriceFormatSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { homeQuickFilterIds, polupromQuickFilterIds, visibleQuickFilters } from '../../features/catalog/quick-filters';
@@ -41,12 +42,10 @@ export default function HomeScreen() {
     router.navigate({ pathname: '/catalog', params: { filter, mode: 'flat' } } as never);
   }
 
+  const [formatPickerOpen, setFormatPickerOpen] = useState(false);
+
   function showPriceListFormatPicker() {
-    Alert.alert('Скачать прайс', 'Выберите формат файла для сохранения на телефон.', [
-      { text: 'PDF', onPress: () => void handlePriceListDownload('pdf') },
-      { text: 'Excel', onPress: () => void handlePriceListDownload('excel') },
-      { text: 'Отмена', style: 'cancel' },
-    ]);
+    setFormatPickerOpen(true);
   }
 
   async function handlePriceListDownload(format: PriceListFormat) {
@@ -139,6 +138,11 @@ export default function HomeScreen() {
 
       </ScrollView>
 
+      <PriceFormatSheet
+        onClose={() => setFormatPickerOpen(false)}
+        onPick={(format) => void handlePriceListDownload(format)}
+        visible={formatPickerOpen}
+      />
       <Modal animationType="fade" transparent visible={polupromOpen}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
