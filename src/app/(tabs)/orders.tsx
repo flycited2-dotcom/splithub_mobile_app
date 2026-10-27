@@ -1,14 +1,30 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { orderStatusColors, orderStatusLabels } from '../../features/orders/order-status';
-import { listOrders } from '../../features/orders/orders-repository';
+import { listOrders, type OrdersFilter } from '../../features/orders/orders-repository';
 import type { Order } from '../../features/orders/types';
 import { useSession } from '../../features/session/session-context';
+import { formatServerDate } from '../../lib/dates';
 import { tabScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
+
+// Same options as the order history filters on the website.
+const statusFilters: [string, string][] = [
+  ['', 'Все статусы'],
+  ['new', 'Новый'],
+  ['in_progress', 'В работе'],
+  ['completed', 'Выполнен'],
+  ['cancelled', 'Отменён'],
+];
+const periodFilters: [string, string][] = [
+  ['', 'За всё время'],
+  ['30d', '30 дней'],
+  ['3m', '3 месяца'],
+  ['1y', 'Год'],
+];
 
 export default function OrdersScreen() {
   const insets = useSafeAreaInsets();
@@ -17,13 +33,16 @@ export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<OrdersFilter>({});
+  const [search, setSearch] = useState('');
+  const filtered = Boolean(filter.status || filter.period || filter.search);
   const createdOrderId = typeof params.created === 'string' ? Number(params.created) : 0;
   const createdOrderNumber = Number.isFinite(createdOrderId) && createdOrderId > 0
     ? `SH-${String(createdOrderId).padStart(5, '0')}`
     : '';
   const createdOrderTotal = typeof params.createdTotal === 'string' ? Number(params.createdTotal) : 0;
   const displayedOrders = useMemo(() => {
-    if (!createdOrderId || !createdOrderTotal || orders.some((order) => order.id === createdOrderId)) {
+    if (filtered || !createdOrderId || !createdOrderTotal || orders.some((order) => order.id === createdOrderId)) {
       return orders;
     }
 
@@ -36,20 +55,20 @@ export default function OrdersScreen() {
     };
 
     return [createdOrder, ...orders];
-  }, [createdOrderId, createdOrderTotal, orders]);
+  }, [createdOrderId, createdOrderTotal, filtered, orders]);
 
   const refresh = useCallback(async (showSpinner = false) => {
     if (!user) return;
     if (showSpinner) setRefreshing(true);
     setError('');
     try {
-      setOrders((await listOrders()).orders);
+      setOrders((await listOrders(filter)).orders);
     } catch {
       setError('Не удалось загрузить заказы');
     } finally {
       if (showSpinner) setRefreshing(false);
     }
-  }, [user]);
+  }, [filter, user]);
 
   // Order statuses change server-side, so reload every time the tab gains
   // focus (tab screens stay mounted and a mount-only effect goes stale).
@@ -88,13 +107,44 @@ export default function OrdersScreen() {
           <Text style={styles.sentText}>Менеджер уже получил заявку. Статус появится здесь после обработки.</Text>
         </View>
       ) : null}
+      <TextInput
+        keyboardType="numbers-and-punctuation"
+        onChangeText={setSearch}
+        onSubmitEditing={() => setFilter((current) => ({ ...current, search }))}
+        placeholder="Поиск #SH-..."
+        returnKeyType="search"
+        style={styles.search}
+        value={search}
+      />
+      <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+        {statusFilters.map(([value, label]) => (
+          <Pressable
+            key={`s-${value}`}
+            onPress={() => setFilter((current) => ({ ...current, status: value }))}
+            style={[styles.chip, (filter.status ?? '') === value && styles.chipActive]}>
+            <Text style={[styles.chipText, (filter.status ?? '') === value && styles.chipTextActive]}>{label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+        {periodFilters.map(([value, label]) => (
+          <Pressable
+            key={`p-${value}`}
+            onPress={() => setFilter((current) => ({ ...current, period: value }))}
+            style={[styles.chip, (filter.period ?? '') === value && styles.chipActive]}>
+            <Text style={[styles.chipText, (filter.period ?? '') === value && styles.chipTextActive]}>{label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {!displayedOrders.length && !error ? <Text style={styles.muted}>Заказов пока нет</Text> : null}
+      {!displayedOrders.length && !error ? (
+        <Text style={styles.muted}>{filtered ? 'Нет заказов по выбранным условиям' : 'Заказов пока нет'}</Text>
+      ) : null}
       {displayedOrders.map((order) => (
         <Pressable key={order.id} onPress={() => router.push(`/order/${order.id}`)} style={styles.card}>
           <View>
             <Text style={styles.orderNumber}>SH-{String(order.id).padStart(5, '0')}</Text>
-            <Text style={styles.muted}>{new Date(order.created_at).toLocaleDateString('ru-RU')}</Text>
+            <Text style={styles.muted}>{formatServerDate(order.created_at)}</Text>
           </View>
           <View style={styles.right}>
             <Text style={styles.price}>{formatPrice(order.total)}</Text>
@@ -113,6 +163,37 @@ export default function OrdersScreen() {
 }
 
 const styles = StyleSheet.create({
+  search: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  chips: {
+    gap: spacing.sm,
+  },
+  chip: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  chipText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+  },
   screen: {
     backgroundColor: colors.background,
     flexGrow: 1,

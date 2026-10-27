@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from deploy_config import REPO, connect  # noqa: E402
 
 SRC = REPO / "server-src"
-FILES = ["api/lib/catalog_overrides.php", "api/lib/guest_order.php", "api/mobile.php"]
+FILES = ["api/lib/catalog_overrides.php", "api/lib/guest_order.php", "api/lib/account.php", "api/mobile.php"]
 # Must already exist on the server (mobile.php requires them); checked, never uploaded.
 REQUIRED_LIVE = ["api/lib/catalog.php", "api/lib/mobile_auth.php", "api/lib/order_service.php",
                  "api/lib/manager_notify.php", "api/lib/push.php", "api/lib/password_reset.php", "db/init.php"]
@@ -85,6 +85,12 @@ def smoke():
     status, res = http("POST", f"{API}?action=create_order", {"items": []})
     assert status == 401, f"create_order without auth: {status} {res}"
     print("  create_order: still requires login ✅")
+
+    status, res = http("POST", f"{API}?action=update_requisites", {"inn": "1"})
+    assert status == 401, f"update_requisites without auth: {status} {res}"
+    status, res = http("GET", f"{API}?action=orders&status=new")
+    assert status == 401, f"orders without auth: {status} {res}"
+    print("  update_requisites / orders: require login ✅")
 
     status, _ = http("POST", f"{API}?action=request_password_reset", {"phone": "+70000000000"})
     assert status == 200, f"password reset endpoint: {status}"

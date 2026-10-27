@@ -2,6 +2,7 @@
 require_once __DIR__ . '/lib/catalog.php';
 require_once __DIR__ . '/lib/catalog_overrides.php';
 require_once __DIR__ . '/lib/guest_order.php';
+require_once __DIR__ . '/lib/account.php';
 require_once __DIR__ . '/lib/mobile_auth.php';
 require_once __DIR__ . '/lib/order_service.php';
 require_once __DIR__ . '/lib/manager_notify.php';
@@ -84,7 +85,7 @@ try {
 
     if ($action === 'profile') {
         $uid = requireMobileUser();
-        $stmt = getDB()->prepare('SELECT id,name,phone,telegram,role,email,created_at FROM users WHERE id=?');
+        $stmt = getDB()->prepare('SELECT id,name,phone,telegram,role,email,created_at,company_name,inn,kpp,legal_address FROM users WHERE id=?');
         $stmt->execute([$uid]);
         ok(['user' => $stmt->fetch()]);
     }
@@ -176,17 +177,20 @@ try {
 
     if ($action === 'orders') {
         $uid = requireMobileUser();
-        $page = max(1, (int)($_GET['page'] ?? 1));
-        $perPage = 20;
-        $offset = ($page - 1) * $perPage;
-        $db = getDB();
-        $count = $db->prepare('SELECT COUNT(*) FROM orders WHERE user_id=?');
-        $count->execute([$uid]);
-        $total = (int)$count->fetchColumn();
-        $stmt = $db->prepare("SELECT id,total,status,comment,created_at
-                              FROM orders WHERE user_id=? ORDER BY id DESC LIMIT $perPage OFFSET $offset");
-        $stmt->execute([$uid]);
-        ok(['orders' => $stmt->fetchAll(), 'total' => $total, 'page' => $page]);
+        // status / period / search filters like the website's order history
+        ok(mobileOrdersPage($uid, $_GET));
+    }
+
+    if ($action === 'update_requisites') {
+        requirePost();
+        $uid = requireMobileUser();
+        $requisites = mobileRequisitesInput(body());
+        if (!$requisites['ok']) {
+            fail($requisites['code'], 422);
+        }
+        unset($requisites['ok']);
+        mobileUpdateRequisites($uid, $requisites);
+        ok(['requisites' => $requisites]);
     }
 
     if ($action === 'order') {

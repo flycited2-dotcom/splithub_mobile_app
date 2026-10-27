@@ -241,6 +241,12 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
       </View>
+      <Pressable onPress={() => router.push('/requisites' as never)} style={[styles.actionButton, styles.requisitesButton]}>
+        <MaterialIcons color={colors.text} name="business" size={20} />
+        <Text style={[styles.actionText, styles.requisitesText]}>
+          {user.inn ? `Реквизиты: ${user.company_name || 'ИНН ' + user.inn}` : 'Реквизиты компании (для счёта)'}
+        </Text>
+      </Pressable>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>Уведомления</Text>
@@ -478,6 +484,17 @@ const styles = StyleSheet.create({
   },
   priceText: {
     color: colors.text,
+  },
+  requisitesButton: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  requisitesText: {
+    color: colors.text,
+    flexShrink: 1,
   },
   disabledButton: {
     opacity: 0.72,

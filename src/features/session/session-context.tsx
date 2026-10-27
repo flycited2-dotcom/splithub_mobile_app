@@ -25,6 +25,11 @@ export type User = {
   email?: string;
   role?: string;
   created_at?: string;
+  // Company requisites for invoices (same fields as the website account).
+  company_name?: string;
+  inn?: string;
+  kpp?: string;
+  legal_address?: string;
 };
 
 type SessionContextValue = {

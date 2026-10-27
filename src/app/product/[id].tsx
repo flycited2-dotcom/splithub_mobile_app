@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,13 +8,12 @@ import { StackBottomTabs } from '../../components/stack-bottom-tabs';
 import { showAddedToCartFeedback } from '../../features/cart/cart-feedback';
 import { useCatalog } from '../../features/catalog/catalog-context';
 import { productShareData, shareUrls } from '../../features/catalog/share-product';
+import { PhotoGallery } from '../../features/catalog/PhotoGallery';
 import { isOrderable, promoBadge } from '../../features/catalog/promo-badge';
 import { stockBadge } from '../../features/catalog/stock-badge';
 import { useCart } from '../../features/cart/cart-context';
 import { stackScreenPadding } from '../../lib/safe-area';
 import { colors, formatPrice, spacing } from '../../lib/theme';
-
-const imageBaseUrl = 'https://splithub.ru/assets/img/products/';
 
 // Consumables carry "-" in spec fields instead of leaving them empty.
 const hasValue = (value?: string) => Boolean(value && !/^[\s\-–—]*$/.test(value));
@@ -76,7 +75,7 @@ export default function ProductDetailsScreen() {
             </View>
           ) : null}
         </View>
-        <Image source={{ uri: `${imageBaseUrl}${product.photo}` }} style={styles.image} />
+        <PhotoGallery photos={product.photos?.length ? product.photos : [product.photo].filter(Boolean)} />
         <View style={styles.priceRow}>
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
           {orderable ? (
@@ -200,13 +199,6 @@ const styles = StyleSheet.create({
   stockBadgeText: {
     fontSize: 13,
     fontWeight: '800',
-  },
-  image: {
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    height: 300,
-    resizeMode: 'contain',
-    width: '100%',
   },
   priceRow: {
     alignItems: 'center',

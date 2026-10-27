@@ -230,23 +230,25 @@ test('shows order statuses as distinct colored badges', async () => {
     ],
   });
 
-  const { getByText } = render(<OrdersScreen />);
+  const { getAllByText } = render(<OrdersScreen />);
+  // The status filter chips use the same words; the order's badge is rendered last.
+  const statusBadge = (label: string) => getAllByText(label).at(-1)!;
 
   await waitFor(() => {
-    expect(StyleSheet.flatten(getByText('Новый').props.style)).toMatchObject({
+    expect(StyleSheet.flatten(statusBadge('Новый').props.style)).toMatchObject({
       backgroundColor: '#DBEAFE',
       color: '#1D4ED8',
     });
-    expect(StyleSheet.flatten(getByText('Подтверждён').props.style)).toMatchObject({
+    expect(StyleSheet.flatten(statusBadge('Подтверждён').props.style)).toMatchObject({
       backgroundColor: '#FFEDD5',
       color: '#C2410C',
     });
-    expect(StyleSheet.flatten(getByText('Выполнен').props.style)).toMatchObject({
+    expect(StyleSheet.flatten(statusBadge('Выполнен').props.style)).toMatchObject({
       backgroundColor: '#DCFCE7',
       color: '#15803D',
       fontWeight: '900',
     });
-    expect(StyleSheet.flatten(getByText('Отменён').props.style)).toMatchObject({
+    expect(StyleSheet.flatten(statusBadge('Отменён').props.style)).toMatchObject({
       backgroundColor: '#FEE2E2',
       color: '#B91C1C',
     });
@@ -267,10 +269,11 @@ test('pulls down to refresh order statuses', async () => {
       ],
     });
 
-  const { UNSAFE_getByType, getByText } = render(<OrdersScreen />);
+  const { UNSAFE_getByType, getAllByText } = render(<OrdersScreen />);
+  const statusBadge = (label: string) => getAllByText(label).at(-1)!;
 
   await waitFor(() => {
-    expect(getByText('Новый')).toBeTruthy();
+    expect(statusBadge('Новый')).toBeTruthy();
   });
 
   const scrollView = UNSAFE_getByType(ScrollView);
@@ -281,7 +284,7 @@ test('pulls down to refresh order statuses', async () => {
   });
 
   await waitFor(() => {
-    expect(getByText('Выполнен')).toBeTruthy();
+    expect(statusBadge('Выполнен')).toBeTruthy();
   });
   expect(mockedListOrders).toHaveBeenCalledTimes(2);
 });
