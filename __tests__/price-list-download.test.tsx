@@ -197,3 +197,14 @@ test('surfaces an error when saving to the Downloads folder fails', async () => 
     downloadsSaver,
   })).rejects.toThrow('Не удалось сохранить в Загрузки');
 });
+
+test('names the file by the local date, not UTC (just after midnight)', async () => {
+  const downloadsSaver = jest.fn().mockResolvedValue('content://media/external/downloads/x.xls');
+  // 00:05 local on 28 Oct is still 27 Oct in UTC for any zone east of Greenwich.
+  const result = await actualPriceListDownload.downloadPriceList('excel', priceProducts, {
+    fileSystem: baseFileSystem(),
+    now: () => new Date(2026, 9, 28, 0, 5),
+    downloadsSaver,
+  });
+  expect(result.fileName).toBe('splithub-price-2026-10-28.xls');
+});

@@ -116,7 +116,7 @@ export default function OrdersScreen() {
         style={styles.search}
         value={search}
       />
-      <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+      <View style={styles.chips}>
         {statusFilters.map(([value, label]) => (
           <Pressable
             key={`s-${value}`}
@@ -125,8 +125,8 @@ export default function OrdersScreen() {
             <Text style={[styles.chipText, (filter.status ?? '') === value && styles.chipTextActive]}>{label}</Text>
           </Pressable>
         ))}
-      </ScrollView>
-      <ScrollView horizontal contentContainerStyle={styles.chips} showsHorizontalScrollIndicator={false}>
+      </View>
+      <View style={styles.chips}>
         {periodFilters.map(([value, label]) => (
           <Pressable
             key={`p-${value}`}
@@ -135,7 +135,7 @@ export default function OrdersScreen() {
             <Text style={[styles.chipText, (filter.period ?? '') === value && styles.chipTextActive]}>{label}</Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {!displayedOrders.length && !error ? (
         <Text style={styles.muted}>{filtered ? 'Нет заказов по выбранным условиям' : 'Заказов пока нет'}</Text>
@@ -171,7 +171,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
+  // Wrapping rows: every status/period fits on screen (a horizontal list hid "Отменён").
   chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   chip: {

@@ -56,6 +56,12 @@ const formatMeta: Record<PriceListFormat, { extension: string; mimeType: string 
   },
 };
 
+// Local calendar date: toISOString() is UTC, so after midnight MSK the file got yesterday's date.
+function localDate(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export async function downloadPriceList(
   format: PriceListFormat,
   products: Product[],
@@ -66,7 +72,7 @@ export async function downloadPriceList(
   }
 
   const fileSystem = options.fileSystem ?? FileSystem;
-  const today = (options.now?.() ?? new Date()).toISOString().slice(0, 10);
+  const today = localDate(options.now?.() ?? new Date());
   const generated = format === 'pdf'
     ? await createPdfPriceList(products, today, fileSystem, options.pdfRenderer ?? pdfRenderer)
     : await createExcelPriceList(products, today, fileSystem);
