@@ -11,7 +11,7 @@
 Отказывается заливать APK, подписанный debug-ключом: такой APK не встанет
 поверх версий, подписанных release.jks, и автообновление у пользователей сломается.
 
-Запуск: python scripts/deploy_apk.py --notes "Что нового" [--min-version-code N]
+Запуск: python scripts/deploy_apk.py --notes "Что нового" [--optional]
 """
 import argparse
 import hashlib
@@ -54,8 +54,8 @@ def signer_subject():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--notes", default="", help="текст «Что нового» в окне обновления")
-    parser.add_argument("--min-version-code", type=int, default=0,
-                        help="сборки ниже этой обязаны обновиться")
+    parser.add_argument("--optional", action="store_true",
+                        help="обновление необязательное (по умолчанию все старые версии обязаны обновиться)")
     args = parser.parse_args()
 
     for path in (APK, PAGE):
@@ -68,8 +68,9 @@ def main():
                  "и пересоберите — иначе обновление не встанет поверх установленной версии.")
 
     code, name = build_version()
+    # Mandatory by default: every build older than this one must update (no "Later" button).
     manifest = {"versionCode": code, "versionName": name, "url": APK_URL,
-                "notes": args.notes, "minVersionCode": args.min_version_code}
+                "notes": args.notes, "minVersionCode": 0 if args.optional else code}
     apk_size = APK.stat().st_size
     print(f"Версия {name} (code {code}), APK {apk_size} байт, sha256={hashlib.sha256(APK.read_bytes()).hexdigest()[:16]}…")
 
